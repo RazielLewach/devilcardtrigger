@@ -1,5 +1,5 @@
 // Los includes
-const port = 3000; // process.env.PORT; // || 8080;
+const port = process.env.PORT; // || 8080;
 const express = require('express'),
      http = require('http');
 const app = express();
