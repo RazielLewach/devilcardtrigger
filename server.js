@@ -1,9 +1,9 @@
 // Los includes
+const port = process.env.PORT; // || 8080;
 const express = require('express'),
      http = require('http');
 const app = express();
 const server = http.createServer(app);
-const port = process.env.PORT || 8080;
 const io = require('socket.io').listen(server);
 
 // Template para el engine ejs
