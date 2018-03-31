@@ -1,6 +1,6 @@
 $(function(){
      // Crea la conexión
-     const port = process.env.PORT; // || 8080;
+     const port = 3000; // process.env.PORT; // || 8080;
      var socket = io.connect('http://localhost:' + port);
 
      // Botones e inputs
