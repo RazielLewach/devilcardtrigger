@@ -1,8 +1,10 @@
 // Los includes
-const express = require('express');
+const express = require('express'),
+     http = require('http');
 const app = express();
-let server = require('http').Server(app);
-var port = process.env.PORT || 8080;
+const server = http.createServer(app);
+const port = process.env.PORT || 8080;
+const io = require('socket.io').listen(server);
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
@@ -22,9 +24,6 @@ app.get('/', (req, res) => {
 server.listen(port, function() {
      console.log("La aplicación está ejecutándose en el puerto " + port);
 });
-
-// socket.io instanciación
-const io = require('socket.io')(server);
 
 // Escuchar cada conexión
 io.on('connection', (socket) => {
