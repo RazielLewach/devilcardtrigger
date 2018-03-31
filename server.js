@@ -1,6 +1,8 @@
 // Los includes
 const express = require('express');
 const app = express();
+let server = require('http').Server(app);
+var port = process.env.PORT || 8080;
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
@@ -16,7 +18,10 @@ app.get('/', (req, res) => {
 
 // Escuchar el puerto adecuado
 // server = app.listen(8080); // PARA TESTING EN LOCAL
-server = app.listen(process.env.PORT);
+// server = app.listen(process.env.PORT);
+server.listen(port, function() {
+     console.log("La aplicación está ejecutándose en el puerto " + port);
+});
 
 // socket.io instanciación
 const io = require('socket.io')(server);
