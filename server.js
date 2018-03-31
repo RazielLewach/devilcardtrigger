@@ -14,8 +14,9 @@ app.get('/', (req, res) => {
      res.render('index');
 });
 
-// Escuchar el puerto 8080
-server = app.listen(8080);
+// Escuchar el puerto adecuado
+// server = app.listen(8080); // PARA TESTING EN LOCAL
+server = app.listen(process.env.PORT);
 
 // socket.io instanciación
 const io = require('socket.io')(server);
