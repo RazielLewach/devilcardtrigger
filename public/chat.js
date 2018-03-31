@@ -1,6 +1,6 @@
 $(function(){
      // Crea la conexión
-     var socket = io.connect('https://localhost:3000/');
+     var socket = io.connect('https://devilcardtrigger.herokuapp.com/');
 
      // Botones e inputs
      var message = $('#message');
