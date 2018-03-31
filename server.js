@@ -1,14 +1,45 @@
-var http = require('http');
-var express = require('express');
-var app = express();
+// Los includes
+const express = require('express');
+const app = express();
 
-app.set('port', process.env.OPENSHIFT_NODEJS_PORT || 8080);
-app.set('ip', process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1');
+// Template para el engine ejs
+app.set('view engine', 'ejs');
 
-http.createServer(app).listen(app.get('port'), app.get('ip'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+// Middlewares
+app.use(express.static('public'));
+
+// Rutas para inicializar la ventana
+app.get('/', (req, res) => {
+     // res.send('🍅');
+     res.render('index');
 });
 
-app.get('/', function (req, res) {
-  res.send('Hello World!');
+// Escuchar el puerto 8080
+server = app.listen(8080);
+
+// socket.io instanciación
+const io = require('socket.io')(server);
+
+// Escuchar cada conexión
+io.on('connection', (socket) => {
+     console.log('Nuevo usuario conectado');
+
+     // Nombre de usuario por defecto
+     socket.username = "Anónimo";
+
+     // Listener de change_username
+     socket.on('change_username', (data) => {
+          socket.username = data.username;
+     });
+
+     // Listener de new_message
+     socket.on('new_message', (data) => {
+          // Broadcast el nuevo mensaje
+          io.sockets.emit('new_message', {message : data.message, username : socket.username});
+     });
+
+     // Listener de typing
+     socket.on('typing', (data) => {
+          socket.broadcast.emit('typing', {username : socket.username});
+     });
 });
