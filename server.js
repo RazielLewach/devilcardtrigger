@@ -1,10 +1,7 @@
 // Los includes
-const port = process.env.PORT || 3000;
-const express = require('express'),
-     http = require('http');
-const app = express();
-const server = app.listen(port);
-const io = require('socket.io').listen(port);
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
@@ -13,9 +10,8 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 // Rutas para inicializar la ventana
-app.get('/', (req, res) => {
-     // res.send('🍅');
-     res.render('index');
+app.get('/', function(req, res) {
+     res.sendFile(__dirname + '/views/index.ejs');
 });
 
 // Escuchar el puerto adecuado
@@ -26,7 +22,7 @@ server.listen(port, function() {
 });
 
 // Escuchar cada conexión
-io.on('connection', (socket) => {
+io.on('connection', function(socket){
      console.log('Nuevo usuario conectado');
 
      // Nombre de usuario por defecto
@@ -47,4 +43,8 @@ io.on('connection', (socket) => {
      socket.on('typing', (data) => {
           socket.broadcast.emit('typing', {username : socket.username});
      });
+});
+
+http.listen(3000, function(){
+     console.log('Listener en el puerto *:3000');
 });
