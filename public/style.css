@@ -28,11 +28,11 @@ h1 {
     margin: 0px;
 }
 
-div#change_username, section#input_zone {
+div.clsIniciarSesion, section#input_zone {
     border: 5px outset #8258FA;
 }
 
-div#change_username {
+div.clsIniciarSesion {
     height: 3%;
     display: inline-block;
     background-color: #BCA9F5;

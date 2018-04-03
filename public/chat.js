@@ -1,39 +1,42 @@
 $(function(){
      // Crea la conexión
-     var socket = io.connect('https://devilcardtrigger.herokuapp.com/');
+     var socket = io.connect(
+          'http://localhost:8080/'
+          //'https://devilcardtrigger.herokuapp.com/'
+     );
 
      // Botones e inputs
      var message = $('#message');
-     var username = $('#username');
+     var inpUsuario = $('#inpUsuario');
+     var inpContrasena = $('#inpContrasena');
      var send_message = $('#send_message');
-     var send_username = $('#send_username');
+     var btnIniciarSesión = $('#btnIniciarSesión');
      var chatroom = $('#chatroom');
      var feedback = $('#feedback');
 
      // Emite el mensaje
      send_message.click(function(){
-          socket.emit('new_message', {message : message.val()});
+          socket.emit('new_message', {usuario : inpUsuario.val(), message : message.val()});
      });
 
      // Listener de new_message
      socket.on('new_message', (data) => {
           console.log(data);
-          chatroom.append('<p class="message">' + data.username + ': ' + data.message + '</p>');
+          chatroom.append('<p class="message">' + data.usuario + ': ' + data.message + '</p>');
      });
 
-     // Emit de username
-     send_username.click(function(){
-          console.log(username.val());
-          socket.emit('change_username', {username : username.val()});
+     // Emit de sckIniciarSesion
+     btnIniciarSesión.click(function(){
+          socket.emit('sckIniciarSesion', {usuario : inpUsuario.val(), contrasena : inpContrasena.val()});
      });
 
      // Emit de typing
      message.bind("keypress", () => {
 		socket.emit('typing')
-	})
+	});
 
 	// Listener de typing
 	socket.on('typing', (data) => {
-		feedback.html("<p><i>" + data.username + " is typing a message..." + "</i></p>")
-	})
+		feedback.html("<p><i>" + data.usuario + " is typing a message..." + "</i></p>")
+	});
 });
