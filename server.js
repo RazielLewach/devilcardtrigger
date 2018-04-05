@@ -10,15 +10,11 @@ const express = require('express'), http = require('http');
 const app = express();
 const server = app.listen(port);
 const io = require('socket.io').listen(server);
-const mysql = require('mysql');
+const pg = require('pg');
+const connectionString = process.env.DATABASE_URL || 'postgresql://localhost:5432/mydb';
 
 // Inicializamos la base de datos
-var con = mysql.createConnection({
- host: "localhost",
- user: "admin",
- password: "password",
- database: "mydb"
-});
+const client = new pg.Client(connectionString);
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
@@ -48,12 +44,17 @@ io.on('connection', (socket) => {
 
      // Listener de sckIniciarSesion
      socket.on('sckIniciarSesion', (data) => {
-          fncDoFromUsuario("iniciarSesion", socket, data);
+          //fncDoFromUsuario("iniciarSesion", socket, data);
+          client.connect();
+          client.query("select * from usuarios where usuario = '$1';", [data.usuario])
+               .then(res => console.log(res.rows[0]))
+               .catch(e => console.error(e.stack));
+          client.end();
      });
 
      // Listener de new_message
      socket.on('new_message', (data) => {
-          fncDoFromUsuario("newMessage", socket, data);
+          //fncDoFromUsuario("newMessage", socket, data);
      });
 
      // Listener de typing
@@ -65,55 +66,3 @@ io.on('connection', (socket) => {
 //#############################################################################################################################################################################################
 //#################################### ACCESOS A BASE DE DATOS ################################################################################################################################
 //#############################################################################################################################################################################################
-
-// En base al usuario leído realiza acciones asíncronas
-function fncDoFromUsuario(id, socket, data) {
-     con.query("select * from usuarios where usuario = '" + data.usuario + "';", function (err, result, fields) {
-          if (err) throw err;
-          else {
-               var cuenta = null;
-               if (result.length > 0) cuenta = result[0];
-
-               if (id == "iniciarSesion") fncIniciarSesion(socket, cuenta, data);
-               else if (id == "newMessage") fncNewMessage(socket, cuenta, data);
-          }
-     });
-}
-
-// Inicia sesión con los datos recuperados de la ventana, o registra el usuario si no existe
-function fncIniciarSesion(socket, cuenta, data) {
-     if (cuenta != null) {
-          // Inicio de sesión exitoso
-          if (cuenta.contrasena == data.contrasena) {
-               socket.usuario = data.usuario;
-               socket.contrasena = data.contrasena;
-               socket.experiencia = cuenta.experiencia;
-               io.sockets.emit('new_message', {message : 'El usuario ' + socket.usuario + ' ha iniciado sesión.', usuario : 'INFO'});
-          }
-          else {
-               io.sockets.emit('new_message', {message : 'Contraseña incorrecta para este usuario.', usuario : 'INFO'});
-          }
-     }
-     // Registramos la cuenta
-     else {
-          con.query("insert into usuarios (usuario, contrasena, experiencia) values ('" + data.usuario + "', '" + data.contrasena + "', 0);");
-          io.sockets.emit('new_message', {message : 'Has registrado el usuario ' + socket.usuario + ' e iniciado sesión.', usuario : 'INFO'});
-          socket.usuario = data.usuario;
-          socket.contrasena = data.contrasena;
-          socket.experiencia = 0;
-     }
-}
-
-// Envía un nuevo mensaje y setea la experiencia de un usuario
-function fncNewMessage(socket, cuenta, data) {
-     if (cuenta != null) {
-          if (cuenta.contrasena == socket.contrasena) {
-               ++socket.experiencia;
-               con.query("update usuarios set experiencia = " + socket.experiencia + " where usuario = '" + data.usuario + "';");
-          }
-          io.sockets.emit('new_message', {message : data.message, usuario : socket.usuario + ' (EXP:' + socket.experiencia + ')'});
-     }
-     else {
-          io.sockets.emit('new_message', {message : 'Debes iniciar sesión para poder escribir.', usuario : 'INFO'});
-     }
-}
