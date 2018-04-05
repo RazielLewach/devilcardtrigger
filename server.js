@@ -44,17 +44,12 @@ io.on('connection', (socket) => {
 
      // Listener de sckIniciarSesion
      socket.on('sckIniciarSesion', (data) => {
-          //fncDoFromUsuario("iniciarSesion", socket, data);
-          client.connect();
-          client.query("select * from usuarios where usuario = '$1';", [data.usuario])
-               .then(res => console.log(res.rows[0]))
-               .catch(e => console.error(e.stack));
-          client.end();
+          fncIniciarSesion(socket, data);
      });
 
      // Listener de new_message
      socket.on('new_message', (data) => {
-          //fncDoFromUsuario("newMessage", socket, data);
+          fncNewMessage(socket, data);
      });
 
      // Listener de typing
@@ -66,3 +61,53 @@ io.on('connection', (socket) => {
 //#############################################################################################################################################################################################
 //#################################### ACCESOS A BASE DE DATOS ################################################################################################################################
 //#############################################################################################################################################################################################
+
+// Inicia sesión con los datos recuperados de la ventana, o registra el usuario si no existe
+function fncIniciarSesion(socket, data) {
+     client.connect();
+     client.query("select * from usuarios where usuario = '$1';", [data.usuario]).then(res => {
+          if (res != null) {
+               var cuenta = res.rows[0];
+
+               // Inicio de sesión exitoso
+               if (cuenta.contrasena == data.contrasena) {
+                    socket.usuario = data.usuario;
+                    socket.contrasena = data.contrasena;
+                    socket.experiencia = cuenta.experiencia;
+                    io.sockets.emit('new_message', {message : 'El usuario ' + socket.usuario + ' ha iniciado sesión.', usuario : 'INFO'});
+               }
+               else {
+                    io.sockets.emit('new_message', {message : 'Contraseña incorrecta para este usuario.', usuario : 'INFO'});
+               }
+          }
+          // Registramos la cuenta
+          else {
+               client.query("insert into usuarios (usuario, contrasena, experiencia) values ('" + data.usuario + "', '" + data.contrasena + "', 0);");
+               io.sockets.emit('new_message', {message : 'Has registrado el usuario ' + socket.usuario + ' e iniciado sesión.', usuario : 'INFO'});
+               socket.usuario = data.usuario;
+               socket.contrasena = data.contrasena;
+               socket.experiencia = 0;
+          }
+     }).catch(e => console.error(e.stack));
+     client.end();
+}
+
+// Envía un nuevo mensaje y setea la experiencia de un usuario
+function fncNewMessage(socket, data) {
+     client.connect();
+     client.query("select * from usuarios where usuario = '$1';", [data.usuario]).then(res => {
+          if (res != null) {
+               var cuenta = res.rows[0];
+
+               if (cuenta.contrasena == socket.contrasena) {
+                    ++socket.experiencia;
+                    client.query("update usuarios set experiencia = " + socket.experiencia + " where usuario = '" + data.usuario + "';");
+               }
+               io.sockets.emit('new_message', {message : data.message, usuario : socket.usuario + ' (EXP:' + socket.experiencia + ')'});
+          }
+          else {
+               io.sockets.emit('new_message', {message : 'Debes iniciar sesión para poder escribir.', usuario : 'INFO'});
+          }
+     }).catch(e => console.error(e.stack));
+     client.end();
+}
