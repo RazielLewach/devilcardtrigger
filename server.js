@@ -16,9 +16,9 @@ const mysql = require('mysql');
 // Inicializamos la base de datos
 var con = mysql.createConnection({
      host: "localhost",
-     user: "admin",
-     password: "password",
-     database: "mydb"
+     user: "HELLcard",
+     password: "SUMMONcreat12",
+     database: "dctdb"
 });
 
 // Template para el engine ejs
@@ -97,11 +97,11 @@ function fncIniciarSesion(socket, cuenta, data) {
      }
      // Registramos la cuenta
      else {
-          con.query("insert into usuarios (usuario, contrasena, experiencia) values ('" + data.usuario + "', '" + data.contrasena + "', 0);");
-          io.sockets.emit('new_message', {message : 'Has registrado el usuario ' + socket.usuario + ' e iniciado sesión.', usuario : 'INFO'});
           socket.usuario = data.usuario;
           socket.contrasena = data.contrasena;
           socket.experiencia = 0;
+          con.query("insert into usuarios (usuario, contrasena, experiencia) values ('" + data.usuario + "', '" + data.contrasena + "', 0);");
+          io.sockets.emit('new_message', {message : 'Has registrado el usuario ' + socket.usuario + ' e iniciado sesión.', usuario : 'INFO'});
      }
 }
 
