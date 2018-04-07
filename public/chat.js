@@ -1,8 +1,8 @@
 $(function(){
      // Crea la conexión
      var socket = io.connect(
-          //'http://localhost:8080/'
-          'https://devilcardtrigger.herokuapp.com/'
+          'http://localhost:8080/'
+          //'https://devilcardtrigger.herokuapp.com/'
      );
 
      // Botones e inputs
