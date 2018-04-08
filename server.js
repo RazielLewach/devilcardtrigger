@@ -49,12 +49,12 @@ io.on('connection', (socket) => {
 
      // Listener de sckIniciarSesion
      socket.on('sckIniciarSesion', (data) => {
-          fncDoFromUsuario("iniciarSesion", socket, data);
+          fncDoFromUsuario(fncIniciarSesion, socket, data);
      });
 
      // Listener de new_message
      socket.on('new_message', (data) => {
-          fncDoFromUsuario("newMessage", socket, data);
+          fncDoFromUsuario(fncNewMessage, socket, data);
      });
 
      // Listener de typing
@@ -68,15 +68,14 @@ io.on('connection', (socket) => {
 //#############################################################################################################################################################################################
 
 // En base al usuario leído realiza acciones asíncronas
-function fncDoFromUsuario(id, socket, data) {
+function fncDoFromUsuario(func, socket, data) {
      con.query("select * from usuarios where usuario = '" + data.usuario + "';", function (err, result, fields) {
           if (err) throw err;
           else {
                var cuenta = null;
                if (result.length > 0) cuenta = result[0];
 
-               if (id == "iniciarSesion") fncIniciarSesion(socket, cuenta, data);
-               else if (id == "newMessage") fncNewMessage(socket, cuenta, data);
+               func(socket, cuenta, data);
           }
      });
 }
