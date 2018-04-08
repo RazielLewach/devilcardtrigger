@@ -16,10 +16,16 @@ const mysql = require('mysql');
 // Inicializamos la base de datos
 var con = mysql.createConnection({
      host: "localhost",
-     user: "HELLcard",
-     password: "SUMMONcreat12",
-     database: "dctdb"
+     user: "bd0a2b4ce07342",
+     // user: "admin",
+     password: "cc65b946",
+     // password: "password",
+     database: "heroku_8f53c8984463c5b"
+     // database: "dctdb"
 });
+
+// Inicializamos las tablas
+con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null, experiencia varchar(50) not null)");
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
