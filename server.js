@@ -14,14 +14,14 @@ const mysql = require('mysql');
 
 // Inicializamos la base de datos
 var con = mysql.createConnection({
-     //host: "eu-cdbr-west-02.cleardb.net",
-     host: "localhost",
-     //user: "bd0a2b4ce07342",
-     user: "root",
-     //password: "5e67cbaed168786",
-     password: "password",
-     //database: "heroku_8f53c8984463c5b"
-     database: "dctdb"
+     host: "eu-cdbr-west-02.cleardb.net",
+     //host: "localhost",
+     user: "bd0a2b4ce07342",
+     //user: "root",
+     password: "5e67cbaed168786",
+     //password: "password",
+     database: "heroku_8f53c8984463c5b"
+     //database: "dctdb"
 });
 
 // Inicializamos las tablas
