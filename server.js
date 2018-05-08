@@ -14,18 +14,12 @@ const mysql = require('mysql');
 
 // Inicializamos la base de datos
 var con = mysql.createConnection({
-     host: "eu-cdbr-west-02.cleardb.net",
-     //host: "localhost",
-     user: "bd0a2b4ce07342",
-     //user: "root",
-     password: "5e67cbaed168786",
-     //password: "password",
-     database: "heroku_8f53c8984463c5b"
-     //database: "dctdb"
+     host: "eu-cdbr-west-02.cleardb.net", user: "bd0a2b4ce07342", password: "5e67cbaed168786", database: "heroku_8f53c8984463c5b"
+     //host: "localhost", user: "root", password: "password", database: "dctdb"
 });
 
 // Inicializamos las tablas
-con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null, experiencia varchar(50) not null);");
+// con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null, experiencia varchar(50) not null);");
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
