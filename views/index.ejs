@@ -8,16 +8,20 @@
           <title>Devil Card Trigger Game</title>
      </head>
 
-     <body style="background-color:#000000;">
-          <p><canvas id="canvas" width="1280" height="720" style="margin-top:-16px; margin-left:-8px;">
-               Tu navegador no soporta el canvas, actualízalo o prueba otro. ¡Gracias! (>uo)7
-          </canvas></p>
-
-          <style>
-               .dctButton {
-               	color: #FFFFFF; background-color:#000000; border: 3px solid #FF0000;
-               }
-          </style>
+     <body style="background-color:#000000; overflow:hidden; margin:0px;">
+          <div id="pantalla">
+               <center><div id="iniciarSesion" style="color:#FFF">
+                    <table><tr><td><center>Usuario</center></td><td><center>Contraseña</center></td></tr>
+                    <tr><td><input id="inpUsuario" type="text" /></td><td><input id="inpContrasena" type="text" /></td></tr></table>
+                    <br><button id="btnIniciarSesion" type="button">Entrar</button><br><br>
+                    Si el Usuario ya existe, inicia sesión. Si no, lo crea con la nueva contraseña.
+                    <p id="msgNoIniciaSesion" style="visibility:hidden;">Contraseña incorrecta para este usuario.</p>
+                    <p id="msgRegistraUsuario" style="visibility:hidden;">Has registrado el usuario. Vuelve a presionar para iniciar sesión.</p>
+               </div></center>
+               <p><canvas id="canvas" width="1280" height="720">
+                    Tu navegador no soporta el canvas, actualízalo o prueba otro. ¡Gracias! (>uo)7
+               </canvas></p>
+          </div>
 
           <script src="https://code.jquery.com/jquery-latest.min.js"></script>
           <script src="client.js"></script>
