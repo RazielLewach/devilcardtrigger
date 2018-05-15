@@ -4,24 +4,32 @@
 
 // Variables de control del programa
 var canvas = null; // canvas sobre el que trabajaremos
+var pantalla = null; // La pantalla para logins y tal
 var ctx = null; // contexto del canvas
 var mousex, mousey; // Coordenadas del ratón
 var marginLeft = 0; // Para ajustar el mouse
 var res = 1; // Se hará zoom en el cliente pero el servidor trabaja a 1:1
-var candadoAngle = 0; // Para que el candado se agite
+var loginScreen = true; // ¿Estamos iniciando sesión?
+var clasesAngle = 0; // Ángulo del círculo de clases
 var nHuecos = 1+2*(4+2+4)+5+5+6*10+8*3*2+4*2*2;
 var nCartas = 31+31;
-var huecos = new Array(); // Las imágenes
-var cartas = new Array(), clase = new Array(), especie = new Array(), elemento = new Array(); // Las imágenes
 
+var huecosDraw = new Array(); // Las imágenes
 for (var i = 0; i < nHuecos; ++i) {
-	huecos.push(new Image());
+	huecosDraw.push(new Image());
 }
+
+var cartasDraw = new Array(), claseDraw = new Array(), especieDraw = new Array(), elementoDraw = new Array(); // Las imágenes
 for (var i = 0; i < nCartas; ++i) {
-	cartas.push(new Image());
-	clase.push(new Image());
-	especie.push(new Image());
-	elemento.push(new Image());
+	cartasDraw.push(new Image());
+	claseDraw.push(new Image());
+	especieDraw.push(new Image());
+	elementoDraw.push(new Image());
+}
+
+var menuDraw = new Array(); // Las imágenes
+for (var i = 0; i < 8; ++i) {
+	menuDraw.push(new Image());
 }
 
 // Variables de apariencia
@@ -30,8 +38,13 @@ var pvWidth = 11;
 var pvHeight = 10;
 var cartaWidth = 64;
 var cartaHeight = 90;
+var menuWidth = 106;
+var menuHeight = 89;
+var clasesSize = 40; // Tamaño
 
 // Tiles y backgrounds
+var sprLoginScreen = 'https://i.imgur.com/gmxnA0p.png'; // Pantalla de inicio de sesión
+
 var spFondoPuerta = new Image(); spFondoPuerta.src = 'https://i.imgur.com/cCF1FeK.png'; // Fondo del campo
 var spFondoRuinas = new Image(); spFondoRuinas.src = 'https://i.imgur.com/19io16q.png'; // Fondo del campo
 var spFondoPozos = new Image(); spFondoPozos.src = 'https://i.imgur.com/ebmO81S.png'; // Fondo del campo
@@ -53,6 +66,8 @@ var spCartaDraw = new Image(); spCartaDraw.src = sprCartaVacia; // Fondo de la c
 var spCartaSeleccionada = new Image(); spCartaSeleccionada.src = sprCartaSeleccionada; // Carta seleccionada
 var spCartaGeneral = new Image(); spCartaGeneral.src = sprCartaGeneral; // Único General
 
+var spCandado = new Image(); spCandado.src = 'https://i.imgur.com/yE0JICH.png'; // Candado cerrado
+
 var spHuecoTrigger = new Array(); // Iconos de Trigger palpitante para el hueco
 var it1 = new Image(); it1.src = 'https://i.imgur.com/qmWkZh6.png'; spHuecoTrigger.push(it1);
 var it2 = new Image(); it2.src = 'https://i.imgur.com/lSLkl7x.png'; spHuecoTrigger.push(it2);
@@ -67,12 +82,6 @@ var spPVB = new Image(); spPVB.src = 'https://i.imgur.com/3yXimnI.png'; // Barra
 var spPVBL = new Image(); spPVBL.src = 'https://i.imgur.com/ngm0Tqx.png'; // Barra de PV vacía larga
 var spSinPV = new Image(); spSinPV.src = 'https://i.imgur.com/W0RdkbY.png'; // Carta sin PV, para las miniaturas
 
-var sprCandadoC = 'https://i.imgur.com/yE0JICH.png'; // Candado cerrado
-var sprCandadoCS = 'https://i.imgur.com/J6Isyer.png'; // Candado cerrado seleccionado
-var sprCandadoO = 'https://i.imgur.com/CFDgobl.png'; // Candado abierto
-var sprCandadoOS = 'https://i.imgur.com/HAhlAid.png'; // Candado abierto seleccionado
-var spCandado = new Image(); spCandado.src = sprCandadoC; // Candado
-
 var spTrigger = new Image(); spTrigger.src = 'https://i.imgur.com/gxvoW05.png'; // El Trigger
 var sprTriggerU = 'https://i.imgur.com/SRiYAWO.png'; // Icono de aumentar Trigger U sin seleccionar
 var sprTriggerUS = 'https://i.imgur.com/KYBGf4a.png'; // Icono de aumentar Trigger U seleccionado
@@ -81,8 +90,7 @@ var sprTriggerDS = 'https://i.imgur.com/PrBj2TJ.png'; // Icono de reducir Trigge
 var spTriggerU = new Image(); spTriggerU.src = sprTriggerU; // Icono de aumentar Trigger U
 var spTriggerD = new Image(); spTriggerD.src = sprTriggerD; // Icono de reducir Trigger D
 
-var sprMensajeRestriccion = 'https://i.imgur.com/ibGCEPY.png'; // Mensaje de restricción o acción impuesta por bloqueo activo
-var sprMensajeInformacion = 'https://i.imgur.com/0GDr9vM.png'; // Mensaje informativo de algo que ha ocurrido
+var spMensajeRestriccion = new Image(); spMensajeRestriccion.src = 'https://i.imgur.com/ibGCEPY.png'; // Mensaje de restricción
 
 var sprReiniciarTrigger = 'https://i.imgur.com/8acH4tf.png'; // Círculo flecha de reiniciar sin seleccionar
 var sprReiniciarTriggerS = 'https://i.imgur.com/0nMfedu.png'; // Círculo flecha de reiniciar seleccionado
@@ -137,22 +145,19 @@ $(function(){
 
      // Crea la conexión
      var socket = io.connect(
-          //'http://localhost:8080/'
-          'https://devilcardtrigger.herokuapp.com/'
+          'http://localhost:8080/'
+          //'https://devilcardtrigger.herokuapp.com/'
      );
 
 	canvas = document.getElementById('canvas');
-	canvas.style.background = '#000';
+	pantalla = document.getElementById('pantalla');
 	ctx = canvas.getContext('2d');
-     ctx.fillStyle = 'rgba(255, 0, 255, 1)';
+     ctx.fillStyle = 'rgba(255, 255, 255, 1)';
 
-	var r1 = window.innerWidth/ctx.canvas.width;
-	var r2 = window.innerHeight/ctx.canvas.height;
-	if (r1 < r2) res = r1; else res = r2;
-	ctx.canvas.width = 1280*res;
-  	ctx.canvas.height = 720*res;
-	marginLeft = (window.innerWidth-1280*res)/2-8;
-	ctx.canvas.style = 'margin-left:' + marginLeft + 'px; margin-top:-16px;';
+	var divIniciarSesion = $('.iniciarSesion');
+	var inpUsuario = $('#inpUsuario');
+     var inpContrasena = $('#inpContrasena');
+     var btnIniciarSesion = $('#btnIniciarSesion');
 
      //############################################################################################################################################################################################################################
      //#################################### ENVIAR SEÑALES AL SERVIDOR PARA LA LÓGICA ###################################################################################################################################################################
@@ -160,53 +165,152 @@ $(function(){
 
 	// Hacemos click
 	canvas.onmousedown = function (e) {
-		socket.emit('mousePress', {mousex:(e.x-marginLeft)/res, mousey:e.y/res});
+		socket.emit('mousePress', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
+	};
+
+	// Soltamos click
+	canvas.onmouseup = function (e) {
+		socket.emit('mouseRelease', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
 	};
 
 	// Movemos el ratón
 	canvas.onmousemove = function (e) {
-		socket.emit('mouseMove', {mousex:(e.x-marginLeft)/res, mousey:e.y/res});
+		socket.emit('mouseMove', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
 
-          mousex = (e.x-marginLeft)/res;
+          mousex = (e.x-marginLeft-8)/res;
           mousey = e.y/res;
 	};
+
+	// Iniciamos sesión o registramos el usuarui
+     btnIniciarSesion.click(function(){
+          socket.emit('iniciarSesion', {usuario : inpUsuario.val(), contrasena : inpContrasena.val()});
+     });
+
+	// Iniciamos sesión de vuelta
+	socket.on('login', function() {
+		loginScreen = false;
+		document.getElementById('iniciarSesion').style = "visibility:hidden; width:0px; height:0px;";
+	});
+
+	// Mensajes de inicio de sesión
+	socket.on('muestraMsgNoIniciaSesion', function() {
+		document.getElementById('msgNoIniciaSesion').style = 'visibilty:visible;';
+	});
+
+	socket.on('muestraMsgRegistraUsuario', function() {
+		document.getElementById('msgRegistraUsuario').style = 'visibilty:visible;';
+	});
 
      // Bucle main
      setInterval(main, 10);
 
      function main() {
-          socket.emit('main');
+		if (loginScreen) {
+			gestionSistema();
+			drawLoginScreen();
+		}
+		else {
+          	socket.emit('main');
+		}
      }
 
 	//############################################################################################################################################################################################################################
      //#################################### RECIBIR SEÑALES PARA MOSTRAR DATOS ###################################################################################################################################################################
      //############################################################################################################################################################################################################################
 
-     socket.on('cargarHuecos', (data) => {
+	socket.on('cargarImagenesHuecos', (data) => {
           for (var j = 0; j < nHuecos; ++j) {
-               huecos[j].src = window[data.huecos[j].image];
+               if (data.hue[j].hue != "") huecosDraw[j].src = window[data.hue[j].hue];
           }
      });
 
-     socket.on('cargarCartas', (data) => {
-          for (var i = 0; i < nCartas; ++i) {
-               cartas[i].src = data.cartas[i].image;
-               clase[i].src = window[data.cartas[i].sprClase];
-               especie[i].src = window[data.cartas[i].sprEspecie];
-               elemento[i].src = window[data.cartas[i].sprElemento];
+	socket.on('cargarImagenesCartas', (data) => {
+		for (var i = 0; i < nCartas; ++i) {
+               cartasDraw[i].src = data.car[i].car;
+               if (data.car[i].cla != "") claseDraw[i].src = window[data.car[i].cla];
+               if (data.car[i].esp != "") especieDraw[i].src = window[data.car[i].esp];
+               if (data.car[i].ele != "") elementoDraw[i].src = window[data.car[i].ele];
           }
      });
 
-	socket.on('mainDraw', (data) => {
-		ctx.clearRect(0,0,canvas.width,canvas.height);
-		ctx.fillStyle = "rgba(255, 0, 255, 1)";
+	socket.on('cargarImagenesMenus', (data) => {
+		for (var i = 0; i < 8; ++i) {
+			if (data.men[i] != "") menuDraw[i].src = window[data.men[i]];
+		}
+     });
+
+	socket.on('main', (data) => {
+		// Lógica
+		gestionSistema();
+		gestionClases(data);
+
+		// Dibujo
 		drawCampo(data);
+		drawSistema(data);
+		drawSwapLimbo(data);
 		drawCartas(data);
-		//drawClases(data);
-		drawCampoComeback(data); // <- TODO drawMenu()
+		drawClases(data);
+		drawCampoComeback(data);
+		drawTrigger(data);
+		drawMensajes(data);
+		drawNuevoTurno(data);
 	});
 
+	//############################################################################################################################################################################################################################
+	//#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
+	//############################################################################################################################################################################################################################
+
+	function gestionSistema() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = "rgba(255, 255, 255, 1)";
+
+		var windowWidth = 1280;
+		var windowHeight = 720;
+
+		var r1 = window.innerWidth/windowWidth;
+		var r2 = window.innerHeight/windowHeight;
+		if (r1 < r2) res = r1; else res = r2;
+		ctx.canvas.width = windowWidth*res;
+	  	ctx.canvas.height = windowHeight*res;
+		marginLeft = (window.innerWidth-windowWidth*res-16)/2;
+		ctx.canvas.style = 'margin-left:' + marginLeft + 'px; margin-top:-16px;';
+
+		if (loginScreen) {
+			pantalla.style = "background-image:url('" + sprLoginScreen + "'); width:" + ctx.canvas.width + "px; height:" + ctx.canvas.height + "px;"
+			+ " background-repeat:no-repeat; margin-left:" + marginLeft + "px; margin-top:-16px; background-size:cover; padding-top:16px; overflow:hidden;";
+		}
+		else {
+			pantalla.style = "";
+		}
+	}
+
+	function gestionClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
+		var xCampo = data.xCampo;
+
+	     if (mousex > xCampo+967-clasesSize/2 && mousex < xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
+	          clasesSize = Math.min(clasesSize+1, 250);
+	     }
+	     else {
+	          clasesSize = Math.max(clasesSize-1, 40);
+	     }
+
+	     if (clasesSize > 40) {
+	          spClases.src = sprClasesS;
+	          clasesAngle = angular(clasesAngle+2);
+	     }
+	     else {
+	          spClases.src = sprClases;
+	     }
+	}
+
+	//############################################################################################################################################################################################################################
+	//#################################### FUNCIONES DE DIBUJO ##############################################################################################################################################################
+	//############################################################################################################################################################################################################################
+
 	function drawCampo(data) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillStyle = "rgba(255, 255, 255, 1)";
+
 		var xCampo = data.xCampo;
 
           // El fondo del campo con las zonas
@@ -223,17 +327,17 @@ $(function(){
 
           // Los huecos
 	     for (var j = 0; j < nHuecos; ++j) {
-	          setAlphaParte(data.huecos[j].y, mousey);
+	          setAlphaParte(data.hue[j].y, mousey);
 
-               var image = huecos[j];
+               var image = huecosDraw[j];
 
-	          ctx.drawImage(image, data.huecos[j].x*res, data.huecos[j].y*res, data.huecos[j].width*res, data.huecos[j].height*res);
+	          ctx.drawImage(image, data.hue[j].x*res, data.hue[j].y*res, data.hue[j].width*res, data.hue[j].height*res);
 	          //ctx.fillText(j, huecos[j].x, huecos[j].y);
 
                var tc = 0;
-               if (!data.huecos[j].ocupado && !data.huecos[j].vert && miCampo(j)) {
+               if (!data.hue[j].ocupado && !data.hue[j].vert && miCampo(j)) {
                	ctx.drawImage(spHuecoTrigger[tc], (
-					data.huecos[j].x + 45 - data.huecoTriggerSize/2)*res, (data.huecos[j].y + 45 - data.huecoTriggerSize/2)*res,
+					data.hue[j].x + 45 - data.huecoTriggerSize/2)*res, (data.hue[j].y + 45 - data.huecoTriggerSize/2)*res,
 					data.huecoTriggerSize*res, data.huecoTriggerSize*res);
 	               ++tc;
 	               if (tc == 6) tc = 0;
@@ -242,58 +346,77 @@ $(function(){
 	     resetAlphaParte();
 
 	     // Candado
-	     drawImageRotate(spCandado, 10*Math.sin(candadoAngle*Math.PI/180), 30, 20, 0, 0, 50, 50, 25, 10);
+	     if (data.candado) {
+			drawImageRotate(spCandado, 0, 30, 20, 0, 0, 50, 50, 25, 10);
+		}
+	}
+
+	function drawSistema(data) {
+		var xCampo = data.xCampo;
+
+	     ctx.fillStyle = "rgba(255, 255, 255, 1)";
+	     ctx.font = 14*res + "px Georgia";
+	     ctx.fillText("Núm. Ejército rival = " + data.nEjercitoRival, (1220+xCampo)*res, 710*res);
+	}
+
+	function drawSwapLimbo(data) {
+		var xCampo = data.xCampo;
+
+		var bot = new Image();
+		if (data.sprLimboBoton != "") bot.src = window[data.sprLimboBoton];
+	     ctx.drawImage(bot, (1164+xCampo)*res, 517*res, 25*res, 75*res);
 	}
 
      function drawCartas(data) {
 	     for (var i = 0; i < nCartas; ++i) {
-	          if (data.cartas[i].huecoOcupado >= 0) {
+	          if (data.car[i].huecoOcupado >= 0) {
 	               // Dibujar la miniatura de la carta o el trasero si está boca abajo
-	               var dib = cartas[i];
+	               var dib = new Image();
 
 	               // Vemos si está volteada la carta del deck
-                    if (data.cartas[i].volteada) dib.src = sprTraseroDMC1;
+                    if (data.car[i].volteada) dib.src = sprTraseroDMC1;
+				else dib.src = cartasDraw[i].src;
 
 	               // Los offsets
-	               var xo = data.cartas[i].x;
-	               var yo = data.cartas[i].y;
-	               var xf = offset*(!data.huecos[data.cartas[i].huecoOcupado].vert);
+	               var xo = data.car[i].x;
+	               var yo = data.car[i].y;
+	               var xf = offset*(!data.hue[data.car[i].huecoOcupado].vert);
 	               var yf = 0;
 
-	               setAlphaParte(data.cartas[i].y, mousey);
+	               setAlphaParte(data.car[i].y, mousey);
 
 	               // Dibuja la carta
-	               drawImageRotateTwo(dib, spSinPV, data.cartas[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	               drawImageRotateTwo(dib, spSinPV, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 
                     // Los iconos de la carta
-                    var cla = clase[i];
-                    var esp = especie[i];
-                    var ele = elemento[i];
-                    ctx.drawImage(cla, (data.cartas[i].x+xf+5+15)*res, (data.cartas[i].y+5)*res, 25*res, 25*res);
-                    ctx.drawImage(esp, (data.cartas[i].x+xf+5)*res, (data.cartas[i].y+5+30)*res, 25*res, 25*res);
-                    ctx.drawImage(ele, (data.cartas[i].x+xf+5+30)*res, (data.cartas[i].y+5+30)*res, 25*res, 25*res);
+                    var cla = claseDraw[i];
+                    var esp = especieDraw[i];
+                    var ele = elementoDraw[i];
+                    ctx.drawImage(cla, (data.car[i].x+xf+5+15)*res, (data.car[i].y+5)*res, 25*res, 25*res);
+                    ctx.drawImage(esp, (data.car[i].x+xf+5)*res, (data.car[i].y+5+30)*res, 25*res, 25*res);
+                    ctx.drawImage(ele, (data.car[i].x+xf+5+30)*res, (data.car[i].y+5+30)*res, 25*res, 25*res);
 
 	               // Carta seleccionada...
-	               if (isSeleccionada(data.cartas[i])) {
+	               if (isSeleccionada(data.car[i])) {
 	                    // ... Dibuja el marco rojo de seleccionada
-	                    drawImageRotate(spCartaSeleccionada, data.cartas[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	                    drawImageRotate(spCartaSeleccionada, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 
 	                    // Dibuja el número si está en el Ejército, para saber cuál robas
-	                    if (data.cartas[i].huecoOcupado < 31) {
+	                    if (data.car[i].huecoOcupado < 31) {
 	                         ctx.fillStyle="rgba(0, 0, 0, 0.8)";
-	                         ctx.fillRect((data.cartas[i].x+2)*res, (data.cartas[i].y+2)*res, (cartaWidth-4)*res, (cartaHeight-4)*res);
+	                         ctx.fillRect((data.car[i].x+2)*res, (data.car[i].y+2)*res, (cartaWidth-4)*res, (cartaHeight-4)*res);
 
 	                         ctx.font = 50*res + "px Georgia";
 	                         ctx.fillStyle = "white";
 	                         ctx.textAlign="center";
-	                         ctx.fillText(data.cartas[i].huecoOcupado, (data.cartas[i].x+cartaWidth/2)*res, (data.cartas[i].y+60)*res);
+	                         ctx.fillText(data.car[i].huecoOcupado, (data.car[i].x+cartaWidth/2)*res, (data.car[i].y+60)*res);
 	                         ctx.textAlign="left";
 	                    }
 	               }
 
 	               // Dibuja el marco amarillo del General
-	               if (data.cartas[i].general) {
-	                    drawImageRotate(spCartaGeneral, data.cartas[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	               if (data.car[i].general) {
+	                    drawImageRotate(spCartaGeneral, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 	               }
 
 	               resetAlphaParte();
@@ -301,22 +424,28 @@ $(function(){
 	     }
      }
 
+	function drawClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
+		// El círculo rotatorio pequeño
+		var xCampo = data.xCampo;
+		drawImageRotate(spClases, clasesAngle, 967 + xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
+	}
+
 	function drawCampoComeback(data) { // Muestra el lado derecho del campo
 	     // Los PV de la carta pequeña
 	     for (var i = 0; i < nCartas; ++i) {
-	          if (data.cartas[i].huecoOcupado >= 0) {
-	               setAlphaParte(data.cartas[i].y, mousey);
+	          if (data.car[i].huecoOcupado >= 0) {
+	               setAlphaParte(data.car[i].y, mousey);
 
 	               // Los offsets
-	               var xf = offset*(!data.huecos[data.cartas[i].huecoOcupado].vert);
+	               var xf = offset*(!data.hue[data.car[i].huecoOcupado].vert);
 	               var yf = 0;
 
-	               if (!data.huecos[data.cartas[i].huecoOcupado].vert) for (var j = 0; j < data.cartas[i].pvmax; ++j) {
-	                    if (j < data.cartas[i].pv) {
-	                         ctx.drawImage(spPV, (data.cartas[i].x+cartaWidth-16 - j*11+xf)*res, (data.cartas[i].y+cartaHeight-12+yf)*res);
+	               if (!data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
+	                    if (j < data.car[i].pv) {
+	                         ctx.drawImage(spPV, (data.car[i].x+cartaWidth-16 - j*8+xf)*res, (data.car[i].y+cartaHeight-12+yf)*res);
 	                    }
 	                    else {
-	                         ctx.drawImage(spPVB, (data.cartas[i].x+cartaWidth-16 - j*11+xf)*res, (data.cartas[i].y+cartaHeight-12+yf)*res);
+	                         ctx.drawImage(spPVB, (data.car[i].x+cartaWidth-16 - j*8+xf)*res, (data.car[i].y+cartaHeight-12+yf)*res);
 	                    }
 	               }
 	          }
@@ -324,13 +453,13 @@ $(function(){
 
 	     resetAlphaParte();
 
-	     //drawMenu();
+	     drawMenu(data);
 
 	     // El fondo comeback
-	     ctx.drawImage(spFondoSep, -25*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, -27*res, 0, 40*res, 720*res);
 	     ctx.drawImage(spFondoDerecha, (1280-360)*res, 0, 360*res, 720*res);
 	     ctx.drawImage(spFondoSep, (1280-390)*res, 0, 40*res, 720*res);
-	     ctx.drawImage(spFondoSep, (1280-15)*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, (1281-15)*res, 0, 40*res, 720*res);
 	     //ctx.drawImage(spFondoDerechaMitad, 1280-360, 0);
 
 	     // La carta gigante
@@ -342,12 +471,99 @@ $(function(){
 
 	     // Los PV de la carta gigante
 	     for (var i = 0; i < nCartas; ++i) {
-	          if (data.cartas[i].huecoOcupado >= 0) {
-	               if (data.cartas[i].seleccionada && !data.huecos[data.cartas[i].huecoOcupado].vert) for (var j = 0; j < data.cartas[i].pvmax; ++j) {
-	                    if (j < data.cartas[i].pv) ctx.drawImage(spPVL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
+	          if (data.car[i].huecoOcupado >= 0) {
+	               if (data.car[i].seleccionada && !data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
+	                    if (j < data.car[i].pv) ctx.drawImage(spPVL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
 	                    else ctx.drawImage(spPVBL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
 	               }
 	          }
+	     }
+	}
+
+	function drawMenu(data) { // Dibujamos el menú de las cartas
+	     // El menú
+	     if (data.menuScale > 0) for (var m = 0; m < 8; ++m) {
+	          // Preparamos los iconos de los menús
+	          var icono = new Image();
+
+	          if (m == 0) { // 0: Restar PV
+	               icono = spMenuPVL;
+	          }
+	          else if (m == 7) { // 7: Girar carta
+	               icono = spMenuG;
+	          }
+	          else if (m == 6) { // 5: Voltear
+	               icono = spMenuV;
+	          }
+	          else if (m == 5) { // 5: Sumar PV
+	               icono = spMenuPVM;
+	          }
+
+	          // Dibujamos los menús, seleccionados o no
+	          if (m != 2 && m != 3) { // Excluimos las 2 de abajo porque quizás no son necesarias y así vemos los PV avanzar en tiempo real
+				setAlphaParte(data.car[data.imenuDraw].y, mousey);
+	               drawImageRotateTwo(menuDraw[7-m], icono, m*45+data.menuScale*360, data.car[data.imenuDraw].x+cartaWidth/2+offset, data.car[data.imenuDraw].y+cartaHeight/2, 0, 0, menuWidth*data.menuScale, menuHeight*data.menuScale, -20, menuHeight);
+				resetAlphaParte();
+			}
+	     }
+	}
+
+	function drawTrigger(data) { // Muestra el umbral de Trigger y el Trigger generado
+	     if (data.comenzado) {
+	          // El umbral de Trigger numérico
+	          ctx.font = 20*res + "px Georgia";
+	          ctx.fillStyle = "white";
+	          ctx.fillText("Umbral de Trigger = "+data.umbralTrigger, 1050*res, 610*res);
+	          ctx.fillText("Trigger total generado = "+data.triggerGenerado, 1017*res, 635*res);
+
+	          // El Trigger total
+	          ctx.drawImage(spTrigger, 880*res, 640*res, 400*res, 80*res);
+
+	          // Marcamos el actual
+	          ctx.fillStyle="rgba(0, 0, 0, 0.8)";
+	          var wd = 23;
+	          ctx.fillRect(995*res, 670*res, (12-data.trigger)*wd*res, 50*res);
+	          ctx.fillRect(990*res, 670*res, 5*res, 50*res);
+
+	          ctx.fillStyle = "white";
+	          ctx.font = 17*res + "px Georgia";
+	          ctx.fillText("Trigger actual", 1100*res, 675*res);
+
+	          // Flecha rotatoria
+	          drawImageRotate(spReiniciarTrigger, 0/*reiniciarTriggerAngle*/, 945, 690, 0, 0, 50, 50, 25, 25);
+
+	          // Las flechas de suma y resta
+	          var sc1 = 1; // 1.5-0.5*Math.cos(triggerFlechaUAngle*Math.PI/180);
+	          drawImageRotate(spTriggerU, 0, 982.5, 677.5, 0, 0, 25*sc1, 25*sc1, 12.5*sc1, 12.5*sc1);
+
+	          var sc2 = 1; // 1.5-0.5*Math.cos(triggerFlechaDAngle*Math.PI/180);
+	          drawImageRotate(spTriggerD, 0, 982.5, 702.5, 0, 0, 25*sc2, 25*sc2, 12.5*sc2, 12.5*sc2);
+	     }
+	}
+
+	function drawMensajes(data) { // Los mensajes de información y restricción que aparecen arriba
+	     // Dibuja cada mensaje
+	     for (var i = 0; i < data.nMensajes; ++i) {
+	          ctx.font = 13*res + "px Georgia";
+	          ctx.fillStyle = "rgba(255, 255, 255, "+data.mensajes[i].alpha+")";
+	          ctx.globalAlpha = data.mensajes[i].alpha;
+	          ctx.drawImage(spMensajeRestriccion, 100, data.mensajes[i].y-30);
+	          ctx.globalAlpha = 1;
+	          ctx.fillText(data.mensajes[i].text, 110, data.mensajes[i].y);
+	     }
+	}
+
+	function drawNuevoTurno(data) { // Iniciamos un nuevo turno
+	     if (data.comenzado) {
+	          // El botón de Nuevo Turno
+	          var sc = 1 + 0.5*Math.sin(data.nuevoTurnoAngle*Math.PI/180);
+			var spNuevoTurno = new Image();
+			if (data.sprNuevoTurno != "") spNuevoTurno.src = window[data.sprNuevoTurno];
+	          drawImageRotate(spNuevoTurno , 0, 1100, 518, 0, 0, 150*sc, 50, 75*sc, 0);
+
+	          ctx.font = 20*res + "px Georgia";
+	          ctx.fillStyle = "white";
+	          ctx.fillText("Iniciar Turno", 1040*res, 550*res);
 	     }
 	}
 
@@ -412,108 +628,4 @@ $(function(){
      function isSeleccionada(carta) { // ¿Estás encima de la carta?
           return mousex > carta.x+carta.xoffset && mousex < carta.x+carta.xoffset+carta.width && mousey > carta.y+carta.yoffset && mousey < carta.y+carta.yoffset+carta.height;
      }
-
-     //############################################################################################################################################################################################################################
-     //#################################### PRONTO TOdO ESTO DESAPARECERÁ ############################################################################################################################################################
-     //############################################################################################################################################################################################################################
-
-	/*function drawMenu() { // Dibujamos el menú de las cartas
-	     // El menú
-	     if (menuScale > 0) for (var m = 0; m < 8; ++m) {
-	          // Preparamos los iconos de los menús
-	          var icono = new Image();
-
-	          if (m == 0) { // 0: Restar PV
-	               icono = spMenuPVL;
-	          }
-	          else if (m == 7) { // 7: Girar carta
-	               icono = spMenuG;
-	          }
-	          else if (m == 6) { // 5: Voltear
-	               icono = spMenuV;
-	          }
-	          else if (m == 5) { // 5: Sumar PV
-	               icono = spMenuPVM;
-	          }
-
-	          // Dibujamos los menús, seleccionados o no
-	          if (m != 2 && m != 3) { // Excluimos las 2 de abajo porque quizás no son necesarias y así vemos los PV avanzar en tiempo real
-	               drawImageRotateTwo(spMenuA[7-m], icono, m*45+menuScale*360, cartas[imenuDraw].x+cartaWidth/2+offset, cartas[imenuDraw].y+cartaHeight/2, 0, 0, menuWidth*menuScale, menuHeight*menuScale, -20, menuHeight);
-	          }
-	     }
-	}
-
-	function drawClases() { // El círculo giratorio central para mostrar las clases al pasar por encima
-	     // El círculo rotatorio pequeño
-	     drawImageRotate(spClases, clasesAngle, 967 + xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
-	}
-
-	function drawTrigger() { // Muestra el umbral de Trigger y el Trigger generado
-	     if (comenzado) {
-	          // El umbral de Trigger numérico
-	          ctx.font = "20px Georgia";
-	          ctx.fillStyle = "white";
-	          ctx.fillText("Umbral de Trigger = "+umbralTrigger, 1050, 610);
-	          ctx.fillText("Trigger total generado = "+triggerGenerado, 1017, 635);
-
-	          // El Trigger total
-	          ctx.drawImage(spTrigger, 880, 640);
-
-	          // Marcamos el actual
-	          ctx.fillStyle="rgba(0, 0, 0, 0.8)";
-	          var wd = 23;
-	          ctx.fillRect(995, 670, (12-trigger)*wd, 50);
-	          ctx.fillRect(990, 670, 5, 50);
-
-	          ctx.fillStyle = "white";
-	          ctx.font = "17px Georgia";
-	          ctx.fillText("Trigger actual", 1100, 675);
-
-	          // Flecha rotatoria
-	          drawImageRotate(spReiniciarTrigger, reiniciarTriggerAngle, 945, 690, 0, 0, 50, 50, 25, 25);
-
-	          // Las flechas de suma y resta
-	          var sc1 = 1.5-0.5*Math.cos(triggerFlechaUAngle*Math.PI/180);
-	          drawImageRotate(spTriggerU, 0, 982.5, 677.5, 0, 0, 25*sc1, 25*sc1, 12.5*sc1, 12.5*sc1);
-
-	          var sc2 = 1.5-0.5*Math.cos(triggerFlechaDAngle*Math.PI/180);
-	          drawImageRotate(spTriggerD, 0, 982.5, 702.5, 0, 0, 25*sc2, 25*sc2, 12.5*sc2, 12.5*sc2);
-	     }
-	}
-
-	function drawMensajes() { // Los mensajes de información y restricción que aparecen arriba
-	     // Dibuja cada mensaje
-	     for (var i = 0; i < nMensajes; ++i) {
-	          ctx.font = "13px Georgia";
-	          ctx.fillStyle = "rgba(255, 255, 255, "+mensajes[i].alpha+")";
-	          ctx.globalAlpha = mensajes[i].alpha;
-	          ctx.drawImage(mensajes[i].image, 100, mensajes[i].y-30);
-	          ctx.globalAlpha = 1;
-	          ctx.fillText(mensajes[i].text, 110, mensajes[i].y);
-	     }
-	}
-
-	function drawNuevoTurno() { // Iniciamos un nuevo turno
-	     if (comenzado) {
-	          // El botón de Nuevo Turno
-	          var sc = 1 + 0.5*Math.sin(nuevoTurnoAngle*Math.PI/180);
-	          drawImageRotate(spNuevoTurno, 0, 1100, 518, 0, 0, 150*sc, 50, 75*sc, 0);
-
-	          ctx.font = "20px Georgia";
-	          ctx.fillStyle = "white";
-	          ctx.fillText("Iniciar Turno", 1040, 550);
-	     }
-	}
-
-	function drawSwapLimbo() {
-	     ctx.drawImage(spLimboBoton, 1164+xCampo, 517);
-	}
-
-	function drawSistema() {
-	     ctx.font = "10px Georgia";
-	     ctx.fillStyle = "rgba(255, 255, 255, 1)";
-
-	     ctx.font = "14px Georgia";
-	     ctx.fillText("Núm. Ejército rival = " + nEjercitoRival, 1220+xCampo, 710);
-	}*/
 });
