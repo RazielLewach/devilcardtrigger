@@ -14,12 +14,13 @@ const mysql = require('mysql');
 
 // Inicializamos la base de datos
 var con = mysql.createConnection({
-     host: "eu-cdbr-west-02.cleardb.net", user: "bd0a2b4ce07342", password: "5e67cbaed168786", database: "heroku_8f53c8984463c5b"
-     //host: "localhost", user: "root", password: "password", database: "dctdb"
+     //host: "eu-cdbr-west-02.cleardb.net", user: "bd0a2b4ce07342", password: "5e67cbaed168786", database: "heroku_8f53c8984463c5b"
+     host: "localhost", user: "root", password: "password", database: "dctdb"
 });
 
-// Inicializamos las tablas
-// con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null, experiencia varchar(50) not null);");
+// Gestiones de tablas
+//con.query("drop table usuarios;"); console.log("La tabla de usuarios ha sido borrada");
+//con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null);"); console.log("La tabla de usuarios ha sido creada");
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
@@ -42,9 +43,15 @@ server.listen(port, function() {
 //############################################################################################################################################################################################################################
 
 // Variables de control de juego
-var mouseClicked = false; // click pulsado actualmente
-var mouseReleased = false; // Click alzado actualmente
+var mousePress = false; // click pulsado actualmente
+var mouseRelease = false; // Click alzado actualmente
 var mousex, mousey, moving;
+
+// Para saber a cuál de los clientes enviar datos
+nClient = 0;
+var clientID = new Array();
+clientID.push(0);
+clientID.push(0);
 
 var nCartas = 31+31; // Número de cartas. 62 pues tomamos AMBOS MAZOS. Luego ir haciendo distinciones.
 var agarrando = false; // ¿Estás agarrando una carta?
@@ -63,8 +70,6 @@ var reiniciarTriggerAngle = 0; // Ángulo de la flecha circular
 var triggerFlechaUAngle = 0; // Angulo de animacion de la flecha U
 var triggerFlechaDAngle = 0; // Angulo de animacion de la flecha D
 var nuevoTurnoAngle = 0; // Ángulo para nuevo turno
-var clasesAngle = 0; // Ángulo del círculo de clases
-var clasesSize = 40; // Tamaño
 var huecoTriggerAng = 0;
 var huecoTriggerSize = 1; // Iconos palpitantes de Trigger en huecos
 var swapLimbo = false; // ¿El Limbo está swapeado?
@@ -73,6 +78,7 @@ var swapeando = ctSwapeando; // Contador para swapear el Limbo
 var iAsignaCarta = 0; // Para asignar las cartas más fácilmente y crear la deck
 var claseSeleccionada = ''; // La carta seleccionada en menú, su clase para comparaciones
 var nEjercitoRival = 0; // Número de cartas del Ejército rival
+var sprNuevoTurno = ""; // Botón de nuevo turno
 
 var offset = 13;
 var pvWidth = 11;
@@ -80,25 +86,22 @@ var pvHeight = 10;
 
 // Menú
 
-/*var spMenuA = new Array();
+var spMenuA = new Array();
 
 for (var i = 0; i < 8; ++i) {
-	var imgA = new Image(); imgA.src = sprMenuA;
-	spMenuA.push(imgA);
-}*/
+	spMenuA.push("");
+}
 
 var isMenu = false; // ¿Menu abierto?
 var imenu = 0; // Índice de carta con menu
 var imenuDraw = 0; // Índice real para dibujar
-var menuWidth = 106;
-var menuHeight = 89;
 var menuSeleccionado = -1; // Del 0 al 7 para interno, del 8 al 15 para externo
 var menuScale = 0; // Animación progresiva
 
 // Las cartas
 
 function obCarta() {
-	this.image = "sprCartaHuecoVert"; // El sprite
+	this.image = ""; // El sprite
 	this.x = 0; // La coordenada x
 	this.y = 0; // La coordenada y
 	this.xstart = 0; // Coordenadas iniciales
@@ -225,86 +228,28 @@ nMensajes = 0;
 
 function obMensaje(id, value) {
 	this.text = ""; // Mensaje a mostrar, ahora lo asignamos
-	//this.image = new Image();
 	this.y = -20; // Coordenada y bajando
 	this.alpha = 1; // A partir de cierto punto comenzará a desaparecer
 
-	if (id == 0) {
-		this.text = "El General es la primera carta a robar.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 1) {
-		this.text = "El General debe estar en la Vanguardia.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 2) {
-		this.text = "Sumas " + value + " Trigger por el sacrificio.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 3) {
-		this.text = "Pagas " + value + " Trigger por la invocación.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 4) {
-		this.text = "Necesitas " + value + " Trigger para invocar esta Criatura.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 5) {
-		this.text = "No puedes voltear boca arriba una Criatura ya sacrificada.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 6) {
-		this.text = "No puedes voltear boca arriba una Criatura ya desplazada entre zonas.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 7) {
-		this.text = "No puedes rotar una Criatura ya sacrificada.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 8) {
-		this.text = "No puedes rotar una Criatura ya desplazada entre zonas.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 9) {
-		this.text = "Desplazas la Criatura de una zona a otra.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 10) {
-		this.text = "No puedes desplazar una Criatura que ha tomado una acción.";
-		//this.image.src = sprMensajeRestriccion;
-	}
-	else if (id == 11) {
-		this.text = "Hueco ocupado. Movimiento no permitido.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 12) {
-		this.text = "No puedes interactuar con el lado del rival.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 13) {
-		this.text = "No puedes guardar hasta tener en juego el General y 2 Criaturas más.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 14) {
-		this.text = "Has guardado tu estado. Podrás retomar tu turno o dar paso a tu rival.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 15) {
-		this.text = "Tu turno ha sido cargado con éxito para continuar.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 16) {
-		this.text = "Campo del rival cargado con éxito. ¡Enfréntale!";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 17) {
-		this.text = "Este fichero es para visualizarse en el lado rival, no puede continuarse.";
-		//this.image.src = sprMensajeInformacion;
-	}
-	else if (id == 18) {
-		this.text = "Este fichero es para continuar el turno, no puede visualizarse en el lado rival.";
-		//this.image.src = sprMensajeInformacion;
-	}
+	if (id == 0) this.text = "El General es la primera carta a robar.";
+	else if (id == 1) this.text = "El General debe estar en la Vanguardia.";
+	else if (id == 2) this.text = "Sumas " + value + " Trigger por el sacrificio.";
+	else if (id == 3) this.text = "Pagas " + value + " Trigger por la invocación.";
+	else if (id == 4) this.text = "Necesitas " + value + " Trigger para invocar esta Criatura.";
+	else if (id == 5) this.text = "No puedes voltear boca arriba una Criatura ya sacrificada.";
+	else if (id == 6) this.text = "No puedes voltear boca arriba una Criatura ya desplazada entre zonas.";
+	else if (id == 7) this.text = "No puedes rotar una Criatura ya sacrificada.";
+	else if (id == 8) this.text = "No puedes rotar una Criatura ya desplazada entre zonas.";
+	else if (id == 9) this.text = "Desplazas la Criatura de una zona a otra.";
+	else if (id == 10) this.text = "No puedes desplazar una Criatura que ha tomado una acción.";
+	else if (id == 11) this.text = "Hueco ocupado. Movimiento no permitido.";
+	else if (id == 12) this.text = "No puedes interactuar con el lado del rival.";
+	else if (id == 13) this.text = "No puedes guardar hasta tener en juego el General y 2 Criaturas más.";
+	else if (id == 14) this.text = "Has guardado tu estado. Podrás retomar tu turno o dar paso a tu rival.";
+	else if (id == 15) this.text = "Tu turno ha sido cargado con éxito para continuar.";
+	else if (id == 16) this.text = "Campo del rival cargado con éxito. ¡Enfréntale!";
+	else if (id == 17) this.text = "Este fichero es para visualizarse en el lado rival, no puede continuarse.";
+	else if (id == 18) this.text = "Este fichero es para continuar el turno, no puede visualizarse en el lado rival.";
 	// nuevoMensaje(, null); //
 }
 
@@ -312,6 +257,8 @@ function nuevoMensaje(id, value) {
 	mensajes.push(new obMensaje(id, value));
 	++nMensajes;
 }
+
+var sprLimboBoton = ""; // Eso
 
 //############################################################################################################################################################################################################################
 //#################################### TRUCOS PARA TESTEOS ###################################################################################################################################################################
@@ -343,41 +290,112 @@ huecos[2].ocupado = false;
 
 // Llamada inicial cada vez que un usuario conecta. También definimos los métodos del socket
 io.on('connection', (socket) => {
-     console.log('Nuevo usuario conectado');
+     if (nClient < 2) {
+          console.log('Nuevo usuario conectado');
+          clientID[nClient] = socket.id;
+          ++nClient;
 
-     socket.on('mousePress', (data) => {
-          mouseClicked = true;
-     });
-
-     socket.on('mouseMove', (data) => {
-          mousex = data.mousex;
-          mousey = data.mousey;
-     });
-
-     socket.emit('cargarHuecos', {huecos:huecos});
-     socket.emit('cargarCartas', {cartas:cartas});
-
-     socket.on('main', function() { // De aquí leer el ID del que lo llama para saber qué cliente es
-          gestionMainLogic();
-          gestionMouse();
-          gestionHuecos();
-          gestionCartas();
-          gestionArrastrarCarta();
-          mostrarCartaSeleccionada();
-
-          socket.emit('mainDraw', {
-               huecos:huecos, cartas:cartas, xCampo:xCampo, huecoTriggerSize:huecoTriggerSize, generalColocado:generalColocado, comenzado:comenzado, candado:candado,
-               sprCartaDraw:sprCartaDraw
+          socket.on('mousePress', (data) => {
+               mousePress = true;
           });
 
-          mouseReleased = mouseClicked;
-          mouseClicked = false
-     });
+          socket.on('mouseRelease', (data) => {
+               mouseRelease = true;
+          });
+
+          socket.on('mouseMove', (data) => {
+               mousex = data.mousex;
+               mousey = data.mousey;
+          });
+
+          // Iniciamos sesión o registramos el usuario
+          socket.on('iniciarSesion', (data) => {
+               doFromUsuario(iniciarSesion, socket, data);
+          });
+
+          // Creamos un array de las imágenes de las cartas
+          var hue = new Array();
+          for (j = 0; j < nHuecos; ++j) {
+               hue.push({hue:huecos[j].image});
+          }
+
+          // Enviamos la señal
+          var car = new Array();
+          for (i = 0; i < nCartas; ++i) {
+               car.push({car:cartas[i].image, cla:cartas[i].sprClase, esp:cartas[i].sprEspecie, ele:cartas[i].sprElemento});
+          }
+
+          cargarImagenesHuecos(socket);
+          cargarImagenesCartas(socket);
+          cargarImagenesMenus(socket);
+
+          socket.on('main', function() { // De aquí leer el ID del que lo llama para saber qué cliente es
+               gestionMainLogic();
+               gestionMouse();
+               gestionHuecos();
+               gestionSwapLimbo();
+               gestionCartas();
+               gestionCartaSeleccionada();
+               gestionArrastrarCarta();
+               gestionMenu(socket);
+               gestionCandado();
+               gestionTrigger();
+               gestionMensajes();
+               gestionNuevoTurno();
+
+               // Los arrays de huecos y cartas
+               var hue = new Array();
+               for (j = 0; j < nHuecos; ++j) {
+                    hue.push({x:huecos[j].x, y:huecos[j].y, width:huecos[j].width, height:huecos[j].height, ocupado:huecos[j].ocupado, vert:huecos[j].vert});
+               }
+
+               var car = new Array();
+               for (j = 0; j < nCartas; ++j) {
+                    car.push({x:cartas[j].x, y:cartas[j].y, huecoOcupado:cartas[j].huecoOcupado, volteada:cartas[j].volteada, angleDraw:cartas[j].angleDraw,
+                    xoffset:cartas[j].xoffset, yoffset:cartas[j].yoffset, width:cartas[j].width, height:cartas[j].height, general:cartas[j].general,
+                    pv:cartas[j].pv, pvmax:cartas[j].pvmax, seleccionada:cartas[j].seleccionada});
+               }
+
+               // Enviamos la señal
+               socket.emit('main', {
+                    hue:hue, car:car, men:spMenuA, xCampo:xCampo, huecoTriggerSize:huecoTriggerSize, generalColocado:generalColocado, comenzado:comenzado, candado:candado,
+                    sprCartaDraw:sprCartaDraw, menuScale:menuScale, imenuDraw:imenuDraw, umbralTrigger:umbralTrigger, triggerGenerado:triggerGenerado, trigger:trigger,
+                    nMensajes:nMensajes, mensajes:mensajes, sprNuevoTurno:sprNuevoTurno, nuevoTurnoAngle:nuevoTurnoAngle, sprLimboBoton:sprLimboBoton,
+                    nEjercitoRival:nEjercitoRival
+               });
+
+               mouseRelease = false;
+               mousePress = false
+          });
+     }
+     else {
+          console.log('No se pueden conectar más usuarios');
+     }
 });
 
 //############################################################################################################################################################################################################################
 //#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
 //############################################################################################################################################################################################################################
+
+function cargarImagenesHuecos(socket) {
+     var hue = new Array();
+     for (j = 0; j < nHuecos; ++j) {
+          hue.push({hue:huecos[j].image});
+     }
+     socket.emit('cargarImagenesHuecos', {hue:hue});
+}
+
+function cargarImagenesCartas(socket) {
+     var car = new Array();
+     for (i = 0; i < nCartas; ++i) {
+          car.push({car:cartas[i].image, cla:cartas[i].sprClase, esp:cartas[i].sprEspecie, ele:cartas[i].sprElemento});
+     }
+     socket.emit('cargarImagenesCartas', {car:car});
+}
+
+function cargarImagenesMenus(socket) {
+     socket.emit('cargarImagenesMenus', {men:spMenuA});
+}
 
 function gestionMainLogic() {
      // Símbolos de Trigger
@@ -422,6 +440,30 @@ function gestionHuecos() { // Simplemente gestión huecos
      if (swapeando > 0) --swapeando;
 }
 
+function gestionSwapLimbo() {
+     if (mousex > 1164+xCampo && mousex < 1164+xCampo+20 && mousey > 517 && mousey < 517+70) {
+          if (!swapLimbo) {
+               sprLimboBoton = "sprLimboBotonOnS";
+          }
+          else {
+               sprLimboBoton = "sprLimboBotonOffS";
+          }
+
+          if (mousePress) {
+               swapLimbo = !swapLimbo;
+               swapeando = ctSwapeando;
+          }
+     }
+     else {
+          if (!swapLimbo) {
+               sprLimboBoton = "sprLimboBotonOn";
+          }
+          else {
+               sprLimboBoton = "sprLimboBotonOff";
+          }
+     }
+}
+
 function gestionCartas() {
      for (var i = 0; i < nCartas; ++i) {
           if (cartas[i].huecoOcupado >= 0) {
@@ -438,9 +480,21 @@ function gestionCartas() {
      }
 }
 
+function gestionCartaSeleccionada() { // Mostramos la carta seleccionada, comprobando si está el ratón encima de cada una
+     // Crear variable local sprCartaDraw para guardar la carta seleccionada y enviar el STRING al socket
+     sprCartaDraw = "";
+     for (var i = 0; i < nCartas; ++i) {
+          cartas[i].seleccionada = false;
+          if (isSeleccionada(cartas[i])) {
+               sprCartaDraw = cartas[i].image;
+               cartas[i].seleccionada = true;
+          }
+     }
+}
+
 function gestionArrastrarCarta() { // Al clicar y mantener una carta, la arrastra
      for (var i = 0; i < nCartas; ++i) { // Para cada carta...
-          if (isSeleccionada(cartas[i]) && mouseClicked && !agarrando) { // ... si tienes el ratón encima y pulsas, la marcas como agarrada
+          if (isSeleccionada(cartas[i]) && mousePress && !agarrando) { // ... si tienes el ratón encima y pulsas, la marcas como agarrada
                if (generalColocado || (!generalColocado && cartas[i].general)) {
                     // Si está volteada y en el Ejército no dejamos arrastrar hasta colocar el General
                     if (miCampo(cartas[i].huecoOcupado)) {
@@ -459,7 +513,7 @@ function gestionArrastrarCarta() { // Al clicar y mantener una carta, la arrastr
                     nuevoMensaje(0, null); // El General es la primera carta a robar
                }
           }
-          else if (mouseReleased) {
+          else if (mouseRelease) {
                // Justo al soltarla, si está tocando un hueco, se ajusta a él
                if (cartas[i].pulsada) {
                     var dejada = false; // ¿La dejas sobre hueco?
@@ -628,23 +682,10 @@ function gestionArrastrarCarta() { // Al clicar y mantener una carta, la arrastr
      }
 }
 
-function mostrarCartaSeleccionada() { // Mostramos la carta seleccionada, comprobando si está el ratón encima de cada una
-     // Crear variable local sprCartaDraw para guardar la carta seleccionada y enviar el STRING al socket
-     sprCartaDraw = "";
-     for (var i = 0; i < nCartas; ++i) {
-          cartas[i].seleccionada = false;
-          if (isSeleccionada(cartas[i])) {
-               sprCartaDraw = cartas[i].image;
-               cartas[i].seleccionada = true;
-          }
-     }
-}
-
-/*
-function gestionMenu() { // Todas las opciones del menú y su control
+function gestionMenu(socket) { // Todas las opciones del menú y su control
      for (var i = 0; i < nCartas; ++i) { // Para cada carta...
           if (isSeleccionada(cartas[i])) { // ... seleccionada que se puede girar ...
-               if (isMousePressed() && cartas[i].pulsada) {
+               if (mousePress && cartas[i].pulsada) {
                     // Si es tuya
                     if (miCampo(cartas[i].huecoOcupado)) {
                          cartas[i].xpress = cartas[i].x;
@@ -658,7 +699,7 @@ function gestionMenu() { // Todas las opciones del menú y su control
                          nuevoMensaje(12, null); // Toca tus cartas sólo
                     }
                }
-               else if (isMouseReleased() && !huecos[cartas[i].huecoOcupado].vert) {
+               else if (mouseRelease && !huecos[cartas[i].huecoOcupado].vert) {
                     if (miCampo(cartas[i].huecoOcupado)) {
                          if (Math.abs(cartas[i].x-cartas[i].xpress) < 10 && Math.abs(cartas[i].y-cartas[i].ypress) < 10) {
 
@@ -687,7 +728,7 @@ function gestionMenu() { // Todas las opciones del menú y su control
           }
 
           // Seleccionamos las opciones del menú
-          if (isMousePressed() && isMenu && i == imenu) {
+          if (mousePress && isMenu && i == imenu) {
 
                if (menuSeleccionado == 0) { // Restar PV
                     cartas[i].pv = Math.max( cartas[i].pv-1, 0);
@@ -761,42 +802,31 @@ function gestionMenu() { // Todas las opciones del menú y su control
 
      // Selecciona el menú correcto
      menuSeleccionado = -1;
-     if (menuScale > 0) for (var m = 0; m < 8; ++m) {
-          // Según la distancia y el ángulo del ratón con el centro de la carta seleccionamos o no cada sección
-          var x = cartas[imenuDraw].x+cartaWidth/2+offset;
-          var y = cartas[imenuDraw].y+cartaHeight/2;
-          var dist = Math.sqrt(Math.pow(mousex-x, 2) + Math.pow(mousey-y, 2));
-          var ang = pointDirection(mousex, mousey, x, y);
+     if (menuScale > 0) {
+          for (var m = 0; m < 8; ++m) {
+               // Según la distancia y el ángulo del ratón con el centro de la carta seleccionamos o no cada sección
+               var x = cartas[imenuDraw].x+cartaWidth/2+offset;
+               var y = cartas[imenuDraw].y+cartaHeight/2;
+               var dist = Math.sqrt(Math.pow(mousex-x, 2) + Math.pow(mousey-y, 2));
+               var ang = pointDirection(mousex, mousey, x, y);
 
-          if (inRange(dist, 30, 75) && absAngleDifference(ang, m*45+45+22.5) <= 22.5) {
-               spMenuA[m].src = sprMenuAS;
-               menuSeleccionado = m+1;
-               if (menuSeleccionado == 8) menuSeleccionado = 0;
+               if (inRange(dist, 30, 75) && absAngleDifference(ang, m*45+45+22.5) <= 22.5) {
+                    spMenuA[m] = "sprMenuAS";
+                    menuSeleccionado = m+1;
+                    if (menuSeleccionado == 8) menuSeleccionado = 0;
+               }
+               else {
+                    spMenuA[m] = "sprMenuA";
+               }
           }
-          else {
-               spMenuA[m].src = sprMenuA;
-          }
+          cargarImagenesMenus(socket);
      }
 }
 
 function gestionCandado() { // Permite bloquear o desbloquear las normas
-     if (candado) spCandado.src = sprCandadoC;
-     else spCandado.src = sprCandadoO;
-
      if (mousex <= 70 && mousey <= 70) {
-          if (candado) spCandado.src = sprCandadoCS;
-          else spCandado.src = sprCandadoOS;
-
-          if (isMousePressed()) { // Al hacer click, alterna
+          if (mousePress) { // Al hacer click, alterna
                candado = !candado;
-          }
-          // Por el hecho de pasar el ratón ya se agita
-          candadoAngle = angular(candadoAngle+5);
-     }
-     else { // Posición original al alejarse
-          if (candadoAngle != 0 && candadoAngle != 180) {
-               candadoAngle = angular(candadoAngle+5);
-               if (candadoAngle == 180) candadoAngle = 0;
           }
      }
 }
@@ -804,18 +834,14 @@ function gestionCandado() { // Permite bloquear o desbloquear las normas
 function gestionTrigger() { // Gestión del umbral de Trigger y el Trigger generado
      if (comenzado) {
           // Sumamos o restamos Trigger
-          spTriggerU.src = sprTriggerU;
-          spTriggerD.src = sprTriggerD;
-
           var dif = umbralTrigger - triggerGenerado;
           var ganar = Math.min(1, dif);
 
           // UP
           if (comenzado && mousex >= 970 && mousex <= 970+25 && mousey >= 665 && mousey < 665+25) {
-               spTriggerU.src = sprTriggerUS;
                triggerFlechaUAngle = angular(triggerFlechaUAngle+5);
 
-               if (isMousePressed()) {
+               if (mousePress) {
                     if (candado) {
                          trigger = Math.min(trigger+ganar, 12);
                          triggerGenerado = Math.min(triggerGenerado+ganar, 12);
@@ -830,10 +856,9 @@ function gestionTrigger() { // Gestión del umbral de Trigger y el Trigger gener
           }
           // DOWN
           if (comenzado && mousex >= 970 && mousex <= 970+25 && mousey >= 690 && mousey < 690+25) {
-               spTriggerD.src = sprTriggerDS;
                triggerFlechaDAngle = angular(triggerFlechaDAngle+5);
 
-               if (isMousePressed()) {
+               if (mousePress) {
                     trigger = Math.max(trigger-1, 0);
                }
           }
@@ -842,13 +867,10 @@ function gestionTrigger() { // Gestión del umbral de Trigger y el Trigger gener
           }
 
           // Reiniciamos el Trigger generado
-          spReiniciarTrigger.src = sprReiniciarTrigger;
-
           if (comenzado && mousex >= 920 && mousex <= 920+50 && mousey >= 660 && mousey < 660+50) {
-               spReiniciarTrigger.src = sprReiniciarTriggerS;
                reiniciarTriggerAngle = angular(reiniciarTriggerAngle+5);
 
-               if (isMousePressed()) {
+               if (mousePress) {
                     triggerGenerado = 0;
                     trigger = 0;
                }
@@ -871,13 +893,13 @@ function gestionMensajes() { // Los mensajes de información y restricción que 
 
 function gestionNuevoTurno() { // Iniciamos un nuevo turno
      if (comenzado) {
-          spNuevoTurno.src = sprNuevoTurnoB;
+          sprNuevoTurno = "sprNuevoTurnoB";
 
           if (mousex > 1100-150 && mousex < 1100+150 && mousey > 518 && mousey < 518+50) {
-               spNuevoTurno.src = sprNuevoTurno;
+               sprNuevoTurno = "sprNuevoTurno";
                nuevoTurnoAngle = angular(nuevoTurnoAngle+5);
 
-               if (isMousePressed()) {
+               if (mousePress) {
                     setNuevoTurno();
                }
           }
@@ -887,47 +909,6 @@ function gestionNuevoTurno() { // Iniciamos un nuevo turno
           }
      }
 }
-
-function gestionClases() { // El círculo giratorio central para mostrar las clases al pasar por encima
-     if (mousex > xCampo+967-clasesSize/2 && mousex < xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
-          clasesSize = Math.min(clasesSize+1, 250);
-     }
-     else {
-          clasesSize = Math.max(clasesSize-1, 40);
-     }
-
-     if (clasesSize > 40) {
-          spClases.src = sprClasesS;
-          clasesAngle = angular(clasesAngle+2);
-     }
-     else {
-          spClases.src = sprClases;
-     }
-}
-
-function gestionSwapLimbo() {
-     if (mousex > 1164+xCampo && mousex < 1164+xCampo+20 && mousey > 517 && mousey < 517+70) {
-          if (!swapLimbo) {
-               spLimboBoton.src = sprLimboBotonOnS;
-          }
-          else {
-               spLimboBoton.src = sprLimboBotonOffS;
-          }
-
-          if (isMousePressed()) {
-               swapLimbo = !swapLimbo;
-               swapeando = ctSwapeando;
-          }
-     }
-     else {
-          if (!swapLimbo) {
-               spLimboBoton.src = sprLimboBotonOn;
-          }
-          else {
-               spLimboBoton.src = sprLimboBotonOff;
-          }
-     }
-}*/
 
 //############################################################################################################################################################################################################################
 //#################################### MÉTODOS HELPER #############################################################################################################################################################
@@ -976,6 +957,28 @@ function getNVangRes(i) { // Devuelve cuanto debes sumar/restar a la posición d
      else return 3;
 }
 
+function setNuevoTurno() {
+	// Calculamos el Umbral de Trigger
+	umbralTrigger = 0;
+	for (var j = 0; j < nHuecos; ++j) {
+		if (!huecos[j].vert && !huecos[j].ocupado && miCampo(j)) ++umbralTrigger;
+	}
+	umbralTrigger = Math.round(umbralTrigger*relacionUmbralTrigger);
+
+	// Volteamos boca arriba y en vertical todas las cartas, reiniciamos el Trigger...
+	trigger = 0;
+	triggerGenerado = 0;
+	isMenu = false;
+
+	for (var i = 0; i < nCartas/2; ++i) {
+		// Sólo reinicia TUS cartas. Las del rival quedan en su posición para reaccionar a ellas
+		if (miCampo(cartas[i].huecoOcupado)) {
+			cartas[i].volteada = false;
+			cartas[i].angle = 90;
+		}
+	}
+}
+
 //############################################################################################################################################################################################################################
 //#################################### MÉTODOS CALCULADORES ############################################################################################################################################################
 //############################################################################################################################################################################################################################
@@ -997,14 +1000,6 @@ function isSeleccionada(carta) { // ¿Estás encima de la carta?
      return mousex > carta.x+carta.xoffset && mousex < carta.x+carta.xoffset+carta.width && mousey > carta.y+carta.yoffset && mousey < carta.y+carta.yoffset+carta.height;
 }
 
-/*function isMousePressed() { // ¿Haces click?
-     return click == "down" && lastClick == null;
-}
-
-function isMouseReleased() { // Sueltas click?
-     return click == "up" && lastClick == null;
-}
-
 function inRange(val, x, y) { // ¿Está Val entre x e y?
      return val >= x && val <= y;
 }
@@ -1020,7 +1015,7 @@ function pointDirection(x1, y1, x2, y2) {
     }
 
     return angle;
-}*/
+}
 
 function angleDifference(x, y) {
      var a = x*Math.PI/180;
@@ -1135,7 +1130,7 @@ function asignaCartasSaleh(start) {
 //#############################################################################################################################################################################################
 
 // En base al usuario leído realiza acciones asíncronas
-/*function fncDoFromUsuario(func, socket, data) {
+function doFromUsuario(func, socket, data) {
      con.query("select * from usuarios where usuario = '" + data.usuario + "';", function (err, result, fields) {
           if (err) throw err;
           else {
@@ -1148,39 +1143,19 @@ function asignaCartasSaleh(start) {
 }
 
 // Inicia sesión con los datos recuperados de la ventana, o registra el usuario si no existe
-function fncIniciarSesion(socket, cuenta, data) {
+function iniciarSesion(socket, cuenta, data) {
      if (cuenta != null) {
           // Inicio de sesión exitoso
           if (cuenta.contrasena == data.contrasena) {
-               socket.usuario = data.usuario;
-               socket.contrasena = data.contrasena;
-               socket.experiencia = cuenta.experiencia;
-               io.sockets.emit('new_message', {message : 'El usuario ' + socket.usuario + ' ha iniciado sesión.', usuario : 'INFO'});
+               socket.emit('login');
           }
           else {
-               io.sockets.emit('new_message', {message : 'Contraseña incorrecta para este usuario.', usuario : 'INFO'});
+               socket.emit('muestraMsgNoIniciaSesion');
           }
      }
      // Registramos la cuenta
      else {
-          socket.usuario = data.usuario;
-          socket.contrasena = data.contrasena;
-          socket.experiencia = 0;
-          con.query("insert into usuarios (usuario, contrasena, experiencia) values ('" + data.usuario + "', '" + data.contrasena + "', 0);");
-          io.sockets.emit('new_message', {message : 'Has registrado el usuario ' + socket.usuario + ' e iniciado sesión.', usuario : 'INFO'});
+          con.query("insert into usuarios (usuario, contrasena) values ('" + data.usuario + "', '" + data.contrasena + "');");
+          socket.emit('muestraMsgRegistraUsuario');
      }
 }
-
-// Envía un nuevo mensaje y setea la experiencia de un usuario
-function fncNewMessage(socket, cuenta, data) {
-     if (cuenta != null) {
-          if (cuenta.contrasena == socket.contrasena) {
-               ++socket.experiencia;
-               con.query("update usuarios set experiencia = " + socket.experiencia + " where usuario = '" + data.usuario + "';");
-          }
-          io.sockets.emit('new_message', {message : data.message, usuario : socket.usuario + ' (EXP:' + socket.experiencia + ')'});
-     }
-     else {
-          io.sockets.emit('new_message', {message : 'Debes iniciar sesión para poder escribir.', usuario : 'INFO'});
-     }
-}*/
