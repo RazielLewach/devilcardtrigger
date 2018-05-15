@@ -14,13 +14,13 @@ const mysql = require('mysql');
 
 // Inicializamos la base de datos
 var con = mysql.createConnection({
-     //host: "eu-cdbr-west-02.cleardb.net", user: "bd0a2b4ce07342", password: "5e67cbaed168786", database: "heroku_8f53c8984463c5b"
-     host: "localhost", user: "root", password: "password", database: "dctdb"
+     host: "eu-cdbr-west-02.cleardb.net", user: "bd0a2b4ce07342", password: "5e67cbaed168786", database: "heroku_8f53c8984463c5b"
+     //host: "localhost", user: "root", password: "password", database: "dctdb"
 });
 
 // Gestiones de tablas
-//con.query("drop table usuarios;"); console.log("La tabla de usuarios ha sido borrada");
-//con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null);"); console.log("La tabla de usuarios ha sido creada");
+con.query("drop table usuarios;"); console.log("La tabla de usuarios ha sido borrada");
+con.query("create table if not exists usuarios (usuario varchar(50) primary key not null, contrasena varchar(50) not null);"); console.log("La tabla de usuarios ha sido creada");
 
 // Template para el engine ejs
 app.set('view engine', 'ejs');
