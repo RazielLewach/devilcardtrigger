@@ -2,6 +2,9 @@
 //#################################### VARIABLES E INICIALIZACIONES ##########################################################################################################################################################
 //############################################################################################################################################################################################################################
 
+// Gestión de variables en sockets
+var usuarioID = "", usuarioPass = "", partidaID = ""; // Variables de sesión que serán enviadas y validadas en servidor para verificar tus inputs
+
 // Variables de control del programa
 var canvas = null; // canvas sobre el que trabajaremos
 var pantalla = null; // La pantalla para logins y tal
@@ -11,6 +14,9 @@ var marginLeft = 0; // Para ajustar el mouse
 var res = 1; // Se hará zoom en el cliente pero el servidor trabaja a 1:1
 var loginScreen = true; // ¿Estamos iniciando sesión?
 var clasesAngle = 0; // Ángulo del círculo de clases
+var huecoTriggerAng = 0; // El icono del Trigger en los huecos
+var huecoTriggerSize = 1; // Iconos palpitantes de Trigger en huecos
+var nuevoTurnoAngle = 0; // Ángulo para nuevo turno
 var nHuecos = 1+2*(4+2+4)+5+5+6*10+8*3*2+4*2*2;
 var nCartas = 31+31;
 
@@ -32,7 +38,51 @@ for (var i = 0; i < 8; ++i) {
 	menuDraw.push(new Image());
 }
 
+// Mensajes de error y de información
+
+var mensajes = new Array();
+nMensajes = 0;
+
+function obMensaje(id, value) {
+	this.text = ""; // Mensaje a mostrar, ahora lo asignamos
+	this.y = -20; // Coordenada y bajando
+	this.alpha = 1; // A partir de cierto punto comenzará a desaparecer
+
+	if (id == 0) this.text = "El General es la primera carta a robar.";
+	else if (id == 1) this.text = "El General debe estar en la Vanguardia.";
+	else if (id == 2) this.text = "Sumas " + value + " Trigger por el sacrificio.";
+	else if (id == 3) this.text = "Pagas " + value + " Trigger por la invocación.";
+	else if (id == 4) this.text = "Necesitas " + value + " Trigger para invocar esta Criatura.";
+	else if (id == 5) this.text = "No puedes voltear boca arriba una Criatura ya sacrificada.";
+	else if (id == 6) this.text = "No puedes voltear boca arriba una Criatura ya desplazada entre zonas.";
+	else if (id == 7) this.text = "No puedes rotar una Criatura ya sacrificada.";
+	else if (id == 8) this.text = "No puedes rotar una Criatura ya desplazada entre zonas.";
+	else if (id == 9) this.text = "Desplazas la Criatura de una zona a otra.";
+	else if (id == 10) this.text = "No puedes desplazar una Criatura que ha tomado una acción.";
+	else if (id == 11) this.text = "Hueco ocupado. Movimiento no permitido.";
+	else if (id == 12) this.text = "No puedes interactuar con el lado del rival.";
+	else if (id == 13) this.text = "No puedes guardar hasta tener en juego el General y 2 Criaturas más.";
+	else if (id == 14) this.text = "Has guardado tu estado. Podrás retomar tu turno o dar paso a tu rival.";
+	else if (id == 15) this.text = "Tu turno ha sido cargado con éxito para continuar.";
+	else if (id == 16) this.text = "Campo del rival cargado con éxito. ¡Enfréntale!";
+	else if (id == 17) this.text = "Este fichero es para visualizarse en el lado rival, no puede continuarse.";
+	else if (id == 18) this.text = "Este fichero es para continuar el turno, no puede visualizarse en el lado rival.";
+
+	else if (id == 1000) this.text = "¡Has iniciado sesión correctamente!";
+	else if (id == 1001) this.text = "Contraseña incorrecta para este usuario...";
+	else if (id == 1002) this.text = "Has registrado el usuario. Vuelve a presionar para iniciar sesión.";
+	else if (id == 1003) this.text = "Este usuario es incorrecto...";
+	else if (id == 1004) this.text = "No puedes entrar a esta partida...";
+	// nuevoMensaje(, null); //
+}
+
+function nuevoMensaje(id, value) {
+	mensajes.push(new obMensaje(id, value));
+	++nMensajes;
+}
+
 // Variables de apariencia
+
 var offset = 13;
 var pvWidth = 11;
 var pvHeight = 10;
@@ -138,6 +188,64 @@ var spMenuPVM = new Image(); spMenuPVM.src = 'https://i.imgur.com/CXNPTU7.png'; 
 var spMenuG = new Image(); spMenuG.src = 'https://i.imgur.com/9iiTyhP.png'; // Girar
 var spMenuV = new Image(); spMenuV.src = 'https://i.imgur.com/ifAiKjU.png'; // Voltear
 
+// TODAS LAS CARTAS
+
+var spCarta = new Array();
+
+var aux1 = 'https://i.imgur.com/041PRtj.png'; spCarta.push(aux1);
+var aux2 = 'https://i.imgur.com/B2xhKWU.png'; spCarta.push(aux2);
+var aux3 = 'https://i.imgur.com/NxPM7Ge.png'; spCarta.push(aux3);
+var aux4 = 'https://i.imgur.com/UngHMSr.png'; spCarta.push(aux4);
+var aux5 = 'https://i.imgur.com/IjHqkUI.png'; spCarta.push(aux5);
+var aux6 = 'https://i.imgur.com/ExvjVEH.png'; spCarta.push(aux6);
+var aux7 = 'https://i.imgur.com/rUmbp8D.png'; spCarta.push(aux7);
+var aux8 = 'https://i.imgur.com/F0PbGhO.png'; spCarta.push(aux8);
+var aux9 = 'https://i.imgur.com/CTJt2Sn.png'; spCarta.push(aux9);
+var aux10 = 'https://i.imgur.com/nlqBm3T.png'; spCarta.push(aux10);
+var aux11 = 'https://i.imgur.com/wsXi1ik.png'; spCarta.push(aux11);
+var aux12 = 'https://i.imgur.com/pYQWeTV.png'; spCarta.push(aux12);
+var aux13 = 'https://i.imgur.com/yhrcl8s.png'; spCarta.push(aux13);
+var aux14 = 'https://i.imgur.com/wAy23v4.png'; spCarta.push(aux14);
+var aux15 = 'https://i.imgur.com/kpPNCkx.png'; spCarta.push(aux15);
+var aux16 = 'https://i.imgur.com/eVJCVQU.png'; spCarta.push(aux16);
+var aux17 = 'https://i.imgur.com/4W1QPup.png'; spCarta.push(aux17);
+var aux18 = 'https://i.imgur.com/ycWgPmy.png'; spCarta.push(aux18);
+var aux19 = 'https://i.imgur.com/5Gjih8z.png'; spCarta.push(aux19);
+var aux20 = 'https://i.imgur.com/7wmw3Mh.png'; spCarta.push(aux20);
+var aux21 = 'https://i.imgur.com/aXyQ1jg.png'; spCarta.push(aux21);
+
+var aux22 = 'https://i.imgur.com/em4NjRe.png'; spCarta.push(aux22);
+var aux23 = 'https://i.imgur.com/Y17XG1h.png'; spCarta.push(aux23);
+var aux24 = 'https://i.imgur.com/eM9HEOu.png'; spCarta.push(aux24);
+var aux25 = 'https://i.imgur.com/gm36IEV.png'; spCarta.push(aux25);
+var aux26 = 'https://i.imgur.com/02BZ1GQ.png'; spCarta.push(aux26);
+var aux27 = 'https://i.imgur.com/D2HauUW.png'; spCarta.push(aux27);
+var aux28 = 'https://i.imgur.com/kcNzQsZ.png'; spCarta.push(aux28);
+var aux29 = 'https://i.imgur.com/qXJH68a.png'; spCarta.push(aux29);
+var aux30 = 'https://i.imgur.com/GaVHi6p.png'; spCarta.push(aux30);
+var aux31 = 'https://i.imgur.com/k4XH4v0.png'; spCarta.push(aux31);
+var aux32 = 'https://i.imgur.com/Y5zCfqS.png'; spCarta.push(aux32);
+var aux33 = 'https://i.imgur.com/bqEQtKS.png'; spCarta.push(aux33);
+var aux34 = 'https://i.imgur.com/vFSLF1I.png'; spCarta.push(aux34);
+var aux35 = 'https://i.imgur.com/jbWtdbh.png'; spCarta.push(aux35);
+var aux36 = 'https://i.imgur.com/jYSjQy0.png'; spCarta.push(aux36);
+var aux37 = 'https://i.imgur.com/ai4uNS8.png'; spCarta.push(aux37);
+var aux38 = 'https://i.imgur.com/LWr2cnj.png'; spCarta.push(aux38);
+var aux39 = 'https://i.imgur.com/fGqt36Z.png'; spCarta.push(aux39);
+var aux40 = 'https://i.imgur.com/9J1alw3.png'; spCarta.push(aux40);
+var aux41 = 'https://i.imgur.com/I6kpm9Q.png'; spCarta.push(aux41);
+var aux42 = 'https://i.imgur.com/j8OfGd8.png'; spCarta.push(aux42);
+var aux43 = 'https://i.imgur.com/6gB7Wdc.png'; spCarta.push(aux43);
+var aux44 = 'https://i.imgur.com/a7HvvDr.png'; spCarta.push(aux44);
+var aux45 = 'https://i.imgur.com/SapZzOj.png'; spCarta.push(aux45);
+var aux46 = 'https://i.imgur.com/ijECbX5.png'; spCarta.push(aux46);
+var aux47 = 'https://i.imgur.com/vygJ2xR.png'; spCarta.push(aux47);
+var aux48 = 'https://i.imgur.com/aAaoqES.png'; spCarta.push(aux48);
+var aux49 = 'https://i.imgur.com/NCIdZKi.png'; spCarta.push(aux49);
+var aux50 = 'https://i.imgur.com/288V28H.png'; spCarta.push(aux50);
+var aux51 = 'https://i.imgur.com/LUVVak6.png'; spCarta.push(aux51);
+var aux52 = 'https://i.imgur.com/uGPVJwz.png'; spCarta.push(aux52);
+
 $(function(){
      //#############################################################################################################################################################################################
      //#################################### LOS INCLUDES Y CONEXIONES ############################################################################################################################
@@ -145,8 +253,8 @@ $(function(){
 
      // Crea la conexión
      var socket = io.connect(
-          //'http://localhost:8080/'
-          'https://devilcardtrigger.herokuapp.com/'
+          'http://localhost:8080/'
+          //'https://devilcardtrigger.herokuapp.com/'
      );
 
 	canvas = document.getElementById('canvas');
@@ -154,10 +262,19 @@ $(function(){
 	ctx = canvas.getContext('2d');
      ctx.fillStyle = 'rgba(255, 255, 255, 1)';
 
-	var divIniciarSesion = $('.iniciarSesion');
+	var divIniciarSesion = document.getElementById('divIniciarSesion');
 	var inpUsuario = $('#inpUsuario');
      var inpContrasena = $('#inpContrasena');
      var btnIniciarSesion = $('#btnIniciarSesion');
+     var selectInfo = document.getElementById('selectInfo');
+
+	var divMenuUsuario = document.getElementById('divMenuUsuario');
+
+	var selectBaraja = $('#selectBaraja');
+	var btnCrearPartida = $('#btnCrearPartida');
+     var inpCrearPartida = $('#inpCrearPartida');
+
+	var sectionPartidas = $('#sectionPartidas');
 
      //############################################################################################################################################################################################################################
      //#################################### ENVIAR SEÑALES AL SERVIDOR PARA LA LÓGICA ###################################################################################################################################################################
@@ -165,40 +282,78 @@ $(function(){
 
 	// Hacemos click
 	canvas.onmousedown = function (e) {
-		socket.emit('mousePress', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
+		socket.emit('mousePress', {mousex:(e.x-marginLeft)/res, mousey:e.y/res, usuarioID:usuarioID, usuarioPass:usuarioPass, partidaID:partidaID});
 	};
 
 	// Soltamos click
 	canvas.onmouseup = function (e) {
-		socket.emit('mouseRelease', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
+		socket.emit('mouseRelease', {mousex:(e.x-marginLeft)/res, mousey:e.y/res, usuarioID:usuarioID, usuarioPass:usuarioPass, partidaID:partidaID});
 	};
 
 	// Movemos el ratón
 	canvas.onmousemove = function (e) {
-		socket.emit('mouseMove', {mousex:(e.x-marginLeft-8)/res, mousey:e.y/res});
+		socket.emit('mouseMove', {mousex:(e.x-marginLeft)/res, mousey:e.y/res, usuarioID:usuarioID, usuarioPass:usuarioPass, partidaID:partidaID});
 
-          mousex = (e.x-marginLeft-8)/res;
+          mousex = (e.x-marginLeft)/res;
           mousey = e.y/res;
 	};
 
+	// Si modificamos el usuario o la contraseña todo el progreso se revierte
+	inpUsuario.on('input', function (e) {
+		divMenuUsuario.style = "visibility:hidden;";
+	});
+
+	inpContrasena.on('input', function (e) {
+		divMenuUsuario.style = "visibility:hidden;";
+	});
+
 	// Iniciamos sesión o registramos el usuarui
      btnIniciarSesion.click(function(){
-          socket.emit('iniciarSesion', {usuario : inpUsuario.val(), contrasena : inpContrasena.val()});
+          socket.emit('iniciarSesion', {usuarioID:inpUsuario.val(), usuarioPass:inpContrasena.val()});
+		usuarioID = inpUsuario.val();
+		usuarioPass = inpContrasena.val();
      });
 
 	// Iniciamos sesión de vuelta
 	socket.on('login', function() {
+		divMenuUsuario.style = "visibility:visible;";
+
+		// Limpiamos la lista de partidas
+		sectionPartidas.empty();
+	});
+
+	// Creamos partida o la continuamos según si ya existe
+	btnCrearPartida.click(function(){
+		socket.emit('crearPartida', {usuarioID:inpUsuario.val(), usuarioPass:inpContrasena.val(), partidaID:inpCrearPartida.val(), barajaID:selectBaraja.val()});
+		partidaID = inpCrearPartida.val();
+	});
+
+	socket.on('partidaCreada', (data) => {
 		loginScreen = false;
-		document.getElementById('iniciarSesion').style = "visibility:hidden; width:0px; height:0px;";
+		divIniciarSesion.style.display = "none";
 	});
 
-	// Mensajes de inicio de sesión
-	socket.on('muestraMsgNoIniciaSesion', function() {
-		document.getElementById('msgNoIniciaSesion').style = 'visibilty:visible;';
+	// Consultamos las partidas
+	socket.on('nuevaPartidaConsultada', (data) => {
+		sectionPartidas.append('<p style="margin-bottom:-20px;">' + data.partidaID + '</p>');
 	});
 
-	socket.on('muestraMsgRegistraUsuario', function() {
-		document.getElementById('msgRegistraUsuario').style = 'visibilty:visible;';
+	// Pulsar enter en los campos de texto
+	inpUsuario.on('keypress', function(e) {
+  		if (e.keyCode === 13) btnIniciarSesion.click();
+	});
+
+	inpContrasena.on('keypress', function(e) {
+  		if (e.keyCode === 13) btnIniciarSesion.click();
+	});
+
+	inpCrearPartida.on('keypress', function(e) {
+  		if (e.keyCode === 13) btnCrearPartida.click();
+	});
+
+	// Genera mensajes
+	socket.on('nuevoMensaje', (data) => {
+		nuevoMensaje(data.mid, data.desc);
 	});
 
      // Bucle main
@@ -206,11 +361,10 @@ $(function(){
 
      function main() {
 		if (loginScreen) {
-			gestionSistema();
-			drawLoginScreen();
+			mainAux(null);
 		}
 		else {
-          	socket.emit('main');
+          	socket.emit('main', {usuarioID:usuarioID, usuarioPass:usuarioPass, partidaID:partidaID});
 		}
      }
 
@@ -226,7 +380,7 @@ $(function(){
 
 	socket.on('cargarImagenesCartas', (data) => {
 		for (var i = 0; i < nCartas; ++i) {
-               cartasDraw[i].src = data.car[i].car;
+               cartasDraw[i].src = spCarta[data.car[i].car];
                if (data.car[i].cla != "") claseDraw[i].src = window[data.car[i].cla];
                if (data.car[i].esp != "") especieDraw[i].src = window[data.car[i].esp];
                if (data.car[i].ele != "") elementoDraw[i].src = window[data.car[i].ele];
@@ -240,21 +394,31 @@ $(function(){
      });
 
 	socket.on('main', (data) => {
+		mainAux(data);
+	});
+
+	function mainAux(data) {
 		// Lógica
+		if (data != null) {
+			gestionClases(data);
+		}
 		gestionSistema();
-		gestionClases(data);
+		gestionMensajes();
 
 		// Dibujo
-		drawCampo(data);
-		drawSistema(data);
-		drawSwapLimbo(data);
-		drawCartas(data);
-		drawClases(data);
-		drawCampoComeback(data);
-		drawTrigger(data);
-		drawMensajes(data);
-		drawNuevoTurno(data);
-	});
+		if (data != null) {
+			drawCampo(data);
+			drawSistema(data);
+			drawSwapLimbo(data);
+			drawCartas(data);
+			drawClases(data);
+			drawCampoComeback(data);
+			drawTrigger(data);
+			drawMensajes(data);
+			drawNuevoTurno(data);
+		}
+		drawMensajes();
+	}
 
 	//############################################################################################################################################################################################################################
 	//#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
@@ -264,6 +428,7 @@ $(function(){
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillStyle = "rgba(255, 255, 255, 1)";
 
+		// La resolución de pantalla
 		var windowWidth = 1280;
 		var windowHeight = 720;
 
@@ -272,22 +437,52 @@ $(function(){
 		if (r1 < r2) res = r1; else res = r2;
 		ctx.canvas.width = windowWidth*res;
 	  	ctx.canvas.height = windowHeight*res;
+		if (loginScreen) ctx.canvas.height = 250*res; // En el login solo tenemos canvas para los mensajes
 		marginLeft = (window.innerWidth-windowWidth*res-16)/2;
 		ctx.canvas.style = 'margin-left:' + marginLeft + 'px; margin-top:-16px;';
 
 		if (loginScreen) {
-			pantalla.style = "background-image:url('" + sprLoginScreen + "'); width:" + ctx.canvas.width + "px; height:" + ctx.canvas.height + "px;"
+			pantalla.style = "background-image:url('" + sprLoginScreen + "'); width:" + windowWidth*res + "px; height:" + windowHeight*res + "px;"
 			+ " background-repeat:no-repeat; margin-left:" + marginLeft + "px; margin-top:-16px; background-size:cover; padding-top:16px; overflow:hidden;";
 		}
 		else {
 			pantalla.style = "";
 		}
+
+		// Símbolos de Trigger palpitantes
+	     huecoTriggerAng = angular(huecoTriggerAng+1);
+	     huecoTriggerSize = 50*(1+Math.cos(huecoTriggerAng*Math.PI/180)/2);
+
+
+
+		// Botón de Nuevo Turno
+		spNuevoTurno.src = sprNuevoTurnoB;
+
+          if (mousex > 1100-150 && mousex < 1100+150 && mousey > 518 && mousey < 518+50) {
+               spNuevoTurno.src = sprNuevoTurno;
+               nuevoTurnoAngle = angular(nuevoTurnoAngle+5);
+          }
+          else {
+               if (nuevoTurnoAngle != 0 && nuevoTurnoAngle != 180) nuevoTurnoAngle = angular(nuevoTurnoAngle+5);
+               if (nuevoTurnoAngle == 180) nuevoTurnoAngle = 0;
+          }
+	}
+
+	function gestionMensajes() { // Los mensajes de información y restricción que aparecen arriba
+	     // Va descendiendo cada mensaje hasta hacerlo desaparecer
+	     for (var i = 0; i < nMensajes; ++i) {
+	          mensajes[i].y += 1;
+
+	          if (mensajes[i].y >= 100) mensajes[i].alpha -= 0.01;
+	          if (mensajes[i].alpha <= 0) {
+	               mensajes.splice(i, 1); // At position i, remove 1 item
+	               --nMensajes;
+	          }
+	     }
 	}
 
 	function gestionClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
-		var xCampo = data.xCampo;
-
-	     if (mousex > xCampo+967-clasesSize/2 && mousex < xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
+	     if (mousex > data.xCampo+967-clasesSize/2 && mousex < data.xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
 	          clasesSize = Math.min(clasesSize+1, 250);
 	     }
 	     else {
@@ -311,19 +506,17 @@ $(function(){
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillStyle = "rgba(255, 255, 255, 1)";
 
-		var xCampo = data.xCampo;
-
           // El fondo del campo con las zonas
-          ctx.drawImage(spFondoNucleos, (18+xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoParamos, (370+xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoPuerta, (726+xCampo)*res, 0, 480*res, 720*res);
-	     ctx.drawImage(spFondoRuinas, (1200+xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoPozos, (1550+xCampo)*res, 0, 350*res, 720*res);
+          ctx.drawImage(spFondoNucleos, (18+data.xCampo)*res, 0, 350*res, 720*res);
+	     ctx.drawImage(spFondoParamos, (370+data.xCampo)*res, 0, 350*res, 720*res);
+	     ctx.drawImage(spFondoPuerta, (726+data.xCampo)*res, 0, 480*res, 720*res);
+	     ctx.drawImage(spFondoRuinas, (1200+data.xCampo)*res, 0, 350*res, 720*res);
+	     ctx.drawImage(spFondoPozos, (1550+data.xCampo)*res, 0, 350*res, 720*res);
 
-	     ctx.drawImage(spFondoSep, (360+xCampo)*res, 0, 40*res, 720*res);
-	     ctx.drawImage(spFondoSep, (710+xCampo)*res, 0, 40*res, 720*res);
-	     ctx.drawImage(spFondoSep, (1178+xCampo)*res, 0, 40*res, 720*res);
-	     ctx.drawImage(spFondoSep, (1530+xCampo)*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, (360+data.xCampo)*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, (710+data.xCampo)*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, (1178+data.xCampo)*res, 0, 40*res, 720*res);
+	     ctx.drawImage(spFondoSep, (1530+data.xCampo)*res, 0, 40*res, 720*res);
 
           // Los huecos
 	     for (var j = 0; j < nHuecos; ++j) {
@@ -352,19 +545,15 @@ $(function(){
 	}
 
 	function drawSistema(data) {
-		var xCampo = data.xCampo;
-
 	     ctx.fillStyle = "rgba(255, 255, 255, 1)";
 	     ctx.font = 14*res + "px Georgia";
-	     ctx.fillText("Núm. Ejército rival = " + data.nEjercitoRival, (1220+xCampo)*res, 710*res);
+	     ctx.fillText("Núm. Ejército rival = " + data.nEjercitoRival, (1220+data.xCampo)*res, 710*res);
 	}
 
 	function drawSwapLimbo(data) {
-		var xCampo = data.xCampo;
-
 		var bot = new Image();
 		if (data.sprLimboBoton != "") bot.src = window[data.sprLimboBoton];
-	     ctx.drawImage(bot, (1164+xCampo)*res, 517*res, 25*res, 75*res);
+	     ctx.drawImage(bot, (1164+data.xCampo)*res, 517*res, 25*res, 75*res);
 	}
 
      function drawCartas(data) {
@@ -397,7 +586,7 @@ $(function(){
                     ctx.drawImage(ele, (data.car[i].x+xf+5+30)*res, (data.car[i].y+5+30)*res, 25*res, 25*res);
 
 	               // Carta seleccionada...
-	               if (isSeleccionada(data.car[i])) {
+	               if (data.car[i].seleccionada) {
 	                    // ... Dibuja el marco rojo de seleccionada
 	                    drawImageRotate(spCartaSeleccionada, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 
@@ -426,8 +615,7 @@ $(function(){
 
 	function drawClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
 		// El círculo rotatorio pequeño
-		var xCampo = data.xCampo;
-		drawImageRotate(spClases, clasesAngle, 967 + xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
+		drawImageRotate(spClases, clasesAngle, 967 + data.xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
 	}
 
 	function drawCampoComeback(data) { // Muestra el lado derecho del campo
@@ -464,8 +652,8 @@ $(function(){
 
 	     // La carta gigante
 		var img = new Image(); img.src = sprCartaVacia;
-		if (data.sprCartaDraw != "") {
-			img.src = data.sprCartaDraw;
+		if (data.cartaDrawID != -1) {
+			img = cartasDraw[Number(data.cartaDrawID)];
 	     }
 		ctx.drawImage(img, 940*res, 20*res, 320*res, 450*res);
 
@@ -530,26 +718,24 @@ $(function(){
 	          ctx.fillText("Trigger actual", 1100*res, 675*res);
 
 	          // Flecha rotatoria
-	          drawImageRotate(spReiniciarTrigger, 0/*reiniciarTriggerAngle*/, 945, 690, 0, 0, 50, 50, 25, 25);
+	          drawImageRotate(spReiniciarTrigger, 0, 945, 690, 0, 0, 50, 50, 25, 25);
 
 	          // Las flechas de suma y resta
-	          var sc1 = 1; // 1.5-0.5*Math.cos(triggerFlechaUAngle*Math.PI/180);
-	          drawImageRotate(spTriggerU, 0, 982.5, 677.5, 0, 0, 25*sc1, 25*sc1, 12.5*sc1, 12.5*sc1);
+	          drawImageRotate(spTriggerU, 0, 982.5, 677.5, 0, 0, 25, 25, 12.5, 12.5);
 
-	          var sc2 = 1; // 1.5-0.5*Math.cos(triggerFlechaDAngle*Math.PI/180);
-	          drawImageRotate(spTriggerD, 0, 982.5, 702.5, 0, 0, 25*sc2, 25*sc2, 12.5*sc2, 12.5*sc2);
+	          drawImageRotate(spTriggerD, 0, 982.5, 702.5, 0, 0, 25, 25, 12.5, 12.5);
 	     }
 	}
 
-	function drawMensajes(data) { // Los mensajes de información y restricción que aparecen arriba
+	function drawMensajes() { // Los mensajes de información y restricción que aparecen arriba
 	     // Dibuja cada mensaje
-	     for (var i = 0; i < data.nMensajes; ++i) {
+	     for (var i = 0; i < nMensajes; ++i) {
 	          ctx.font = 13*res + "px Georgia";
-	          ctx.fillStyle = "rgba(255, 255, 255, "+data.mensajes[i].alpha+")";
-	          ctx.globalAlpha = data.mensajes[i].alpha;
-	          ctx.drawImage(spMensajeRestriccion, 100, data.mensajes[i].y-30);
+	          ctx.fillStyle = "rgba(255, 255, 255, "+mensajes[i].alpha+")";
+	          ctx.globalAlpha = mensajes[i].alpha;
+	          ctx.drawImage(spMensajeRestriccion, 100*res, (mensajes[i].y-30)*res, 500*res, 50*res);
 	          ctx.globalAlpha = 1;
-	          ctx.fillText(data.mensajes[i].text, 110, data.mensajes[i].y);
+	          ctx.fillText(mensajes[i].text, 110*res, mensajes[i].y*res);
 	     }
 	}
 
@@ -623,9 +809,5 @@ $(function(){
           var a = x*Math.PI/180;
           var b = y*Math.PI/180;
           return Math.abs(Math.atan2(Math.sin(a-b), Math.cos(a-b))*180/Math.PI);
-     }
-
-     function isSeleccionada(carta) { // ¿Estás encima de la carta?
-          return mousex > carta.x+carta.xoffset && mousex < carta.x+carta.xoffset+carta.width && mousey > carta.y+carta.yoffset && mousey < carta.y+carta.yoffset+carta.height;
      }
 });
