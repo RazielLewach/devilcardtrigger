@@ -29,7 +29,7 @@ pool.getConnection((errStart, con) => {
      //con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
 
      //con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
-     //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
+     //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
      //con.query("create table if not exists Cartas (cartaID int not null, cartaNombre varchar(50) not null, cartaPV int not null, cartaRango int not null, cartaClase varchar(1) not null, cartaEspecie varchar(1) not null, cartaElemento varchar(1) not null, primary key (cartaID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Cartas ha sido creada");});
 
      /*for (var i = 0; i <= 52; ++i) {
@@ -127,35 +127,6 @@ var cartaWidth = 64;
 var cartaHeight = 90;
 var iAsignaCarta = 0; // Para asignar las cartas más fácilmente y crear la deck
 
-// VARIABLES TEMPORALES DE DATOS EN ESTRUCTURAS COMPLEJAS QUE REQUIEREN ACCESO A BASE DE DATOS. LAS GUARDAMOS AQUI PARA UTILIZARLAS
-var mousex = 0;
-var mousey = 0;
-var mousePress = false;
-var mouseRelease = false;
-var xCampo = 0;
-var generalColocado = false;
-var nComenzado = 0;
-var comenzado = 0;
-var candado = false;
-var umbralTrigger = 0;
-var trigger = 0;
-var triggerGenerado = 0;
-var swapLimbo = false;
-var swapeando = 0;
-var claseSeleccionada = '';
-var nEjercitoRival = 0;
-var spMenuA = new Array(); for (var i = 0; i < 8; ++i) spMenuA.push('');
-var isMenu = false;
-var imenu = 0;
-var imenuDraw = 0;
-var menuSeleccionado = 0;
-var menuScale = 0;
-var cartas = new Array(); for (var i = 0; i < nCartas; ++i) cartas.push(new obCarta());
-var cartaDrawID = 0;
-var huecos = new Array(); for (var i = 0; i < nHuecos; ++i) huecos.push(new obHueco(0, 0, 0, false));
-var sprLimboBoton = '';
-var cargaImagenes = false;
-
 // Gestionamos múltiples partidas a la vez
 nPartidas = 0;
 partidas = new Array();
@@ -226,6 +197,9 @@ function obUsuario() {
      this.swapeando = ctSwapeando; // Contador para swapear el Limbo
      this.claseSeleccionada = ''; // La carta seleccionada en menú, su clase para comparaciones
      this.nEjercitoRival = 0; // Número de cartas del Ejército rival
+     this.cargaImagenesHuecos = 0; // Cargamos imagenes de Huecos?
+     this.cargaImagenesCartas = 0; // Cargamos imagenes de Cartas?
+     this.cargaImagenesMenus = 0; // Cargamos imagenes de Menus?
      // Menú
      this.spMenuA = new Array();
      for (var i = 0; i < 8; ++i) {
@@ -236,8 +210,6 @@ function obUsuario() {
      this.imenuDraw = 0; // Índice real para dibujar
      this.menuSeleccionado = -1; // Del 0 al 7 para interno, del 8 al 15 para externo
      this.menuScale = 0; // Animación progresiva
-     // Las cartas
-     this.cartaDrawID = -1; // La carta gigante
      // Los huecos
      this.sprLimboBoton = ""; // Eso
 }
@@ -247,25 +219,12 @@ function obUsuario() {
 
 function obCarta() {
 	this.cid = -1; // El sprite
-	this.x = 0; // La coordenada x
-	this.y = 0; // La coordenada y
-	this.xstart = 0; // Coordenadas iniciales
-	this.ystart = 0; // That
+     this.cartaUsuario = [new obCartaUsuario(), new obCartaUsuario()];
 	this.pv = 0; // Los PV actuales
 	this.pvmax = 0; // Los PV máximos
-	this.seleccionada = false; // ¿Está el mouse encima?
-	this.pulsada = false; // ¿Le has hecho click?
-	this.xoff = 0; // Al clicar, el x respecto al borde, para arrastrar bien
-	this.yoff = 0; // Igual con la y
 	this.huecoOcupado = -1; // índice del hueco ocupado
-	this.width = cartaWidth;
-	this.height = cartaHeight;
 	this.angle = 90;
 	this.angleDraw = 90; // Para dibujo gradual
-	this.xpress = 0; // Coordenadas al clicar
-	this.ypress = 0;
-	this.xoffset = 0;
-	this.yoffset = 0;
 	this.volteada = false; // ¿Está volteada?
 	this.general = false; // ¿Es General?
 	this.rango = 0; // El Rango de la Criatura
@@ -275,33 +234,52 @@ function obCarta() {
 	this.sprElemento = ""; // Cuál de los 6 Elementos es (F, R, S, L, G, T, N)
 }
 
+// Datos de las cartas que dependen del usuario
+
+function obCartaUsuario() {
+     this.usuarioID = ""; // Ezo
+	this.x = 0; // La coordenada x
+	this.y = 0; // La coordenada y
+	this.xstart = 0; // Coordenadas iniciales
+	this.ystart = 0; // That
+	this.seleccionada = false; // ¿Está el mouse encima?
+	this.pulsada = false; // ¿Le has hecho click?
+	this.xoff = 0; // Al clicar, el x respecto al borde, para arrastrar bien
+	this.yoff = 0; // Igual con la y
+	this.xpress = 0; // Coordenadas al clicar
+	this.ypress = 0; // Igual con la y
+}
+
 // Los huecos
 
 function obHueco(ind, x, y, vert) {
 	this.ind = ind; // ¿Vanguardia (0), Ejército (1), Limbo (2)?
-	this.x = x; // La coordenada x
-	this.y = y; // La coordenada y
-	this.ocupado = false; // ¿Tiene carta ocupando?
-	this.image = "sprCartaHueco";
+	this.huecoUsuario = [new obHuecoUsuario(x, y, vert), new obHuecoUsuario(x, y, vert)];
 	this.width = cartaHeight;
 	this.height = cartaHeight;
 	this.xoffset = 0;
 	this.yoffset = 0;
 	this.vert = vert;
-	this.xstart = this.x; // Coordenadas iniciales básicas
-	this.ystart = this.y;
-	this.icarta = -1; // id de la carta anexada (i)
 
 	if (vert) {
-		this.image = "sprCartaHuecoVert";
 		this.width = cartaWidth;
-		this.x += offset;
-		this.xstart += offset;
+          this.huecoUsuario[0].x += offset;
+          this.huecoUsuario[1].x += offset;
+          this.huecoUsuario[0].xstart += offset;
+          this.huecoUsuario[1].xstart += offset;
 	}
+}
 
-	if (ind == 1) { // Los 31 huecos del Ejército se consideran ocupados
-		this.ocupado = true;
-	}
+function obHuecoUsuario(x, y, vert) {
+     this.usuarioID = ""; // Ezo
+     this.x = x; // La coordenada x
+     this.y = y; // La cooordenada y
+	this.xstart = this.x; // Coordenadas iniciales básicas
+	this.ystart = this.y;
+	this.image = "sprCartaHueco";
+     if (vert) {
+		this.image = "sprCartaHuecoVert";
+     }
 }
 
 function generaGridDeHuecos(objeto, ind, x, y, nRow, nCol, sepW, sepH, resUp) {
@@ -312,35 +290,11 @@ function generaGridDeHuecos(objeto, ind, x, y, nRow, nCol, sepW, sepH, resUp) {
 	}
 }
 
-//############################################################################################################################################################################################################################
-//#################################### TRUCOS PARA TESTEOS ###################################################################################################################################################################
-//############################################################################################################################################################################################################################
-
-//asignaCartasRaziel(0);
-//asignaCartasSaleh(0);
-
-/*generalColocado = true;
-nComenzado = 2;
-comenzado = true;
-
-cartas[0].huecoOcupado = 61;
-huecos[61].ocupado = true;
-huecos[61].icarta = 0;
-cartas[1].huecoOcupado = 62;
-huecos[62].ocupado = true;
-huecos[62].icarta = 1;
-cartas[2].huecoOcupado = 63;
-huecos[63].ocupado = true;
-huecos[63].icarta = 2;
-huecos[0].ocupado = false;
-huecos[1].ocupado = false;
-huecos[2].ocupado = false;*/
-
 //#############################################################################################################################################################################################
 //#################################### CONEXIÓN INICIAL, RECIBIR SEÑALES DEL CLIENTE PARA ENVIARLAS DE VUELTA #######################################################################################################################################
 //#############################################################################################################################################################################################
 
-// Llamada inicial cada vez que un usuario conecta. También definimos los métodos del socket
+// Llamada inicial cada vez que un usuario conecta. También definimos los mét-odos del socket
 io.on('connection', (socket) => {
      console.log('Nuevo usuario conectado');
 
@@ -375,52 +329,7 @@ io.on('connection', (socket) => {
      });
 
      socket.on('main', (data) => { // De aquí leer el ID del que lo llama para saber qué cliente es
-          doFromUsuarioYPartida(getAllVariables, socket, data);
-
-          // En cada step, enviamos las imágenes a cargar sólo cuando toca
-          // Gestionar que CADA VEZ QUE UN USUARIO CREA/SE UNA A UNA PARTIDA, ASIGNAR CARGAIMAGENES A TRUE PARA QUE LAS CARGUE EN SU SIGUIENTE MAIN.
-          if (cargaImagenes) {
-               cargarImagenesHuecos(socket);
-               cargarImagenesCartas(socket);
-               cargarImagenesMenus(socket);
-               cargaImagenes = false;
-          }
-
-          gestionHuecos(socket, data);
-          gestionSwapLimbo(socket, data);
-          gestionCartas(socket, data);
-          gestionCartaSeleccionada(socket, data);
-          gestionArrastrarCarta(socket, data);
-          gestionMenu(socket, data);
-          gestionCandado(socket, data);
-          gestionTrigger(socket, data);
-          gestionNuevoTurno(socket, data);
-
-          // Los arrays de huecos y cartas
-          /*var hue = new Array();
-          for (j = 0; j < nHuecos; ++j) {
-               hue.push({hue:huecos[j].image, x:huecos[j].x, y:huecos[j].y, width:huecos[j].width, height:huecos[j].height, ocupado:huecos[j].ocupado, vert:huecos[j].vert});
-          }
-
-          var car = new Array();
-          for (j = 0; j < nCartas; ++j) {
-               car.push({car:cartas[i].cid, cla:cartas[i].sprClase, esp:cartas[i].sprEspecie, ele:cartas[i].sprElemento,
-               x:cartas[j].x, y:cartas[j].y, huecoOcupado:cartas[j].huecoOcupado, volteada:cartas[j].volteada, angleDraw:cartas[j].angleDraw,
-               xoffset:cartas[j].xoffset, yoffset:cartas[j].yoffset, width:cartas[j].width, height:cartas[j].height, general:cartas[j].general,
-               pv:cartas[j].pv, pvmax:cartas[j].pvmax, seleccionada:cartas[j].seleccionada});
-          }*/
-
-          // Enviamos la señal
-          socket.emit('main', {
-               hue:huecos, car:cartas, men:spMenuA, generalColocado:generalColocado, comenzado:comenzado, candado:candado, xCampo:xCampo,
-               cartaDrawID:cartaDrawID, menuScale:menuScale, imenuDraw:imenuDraw, umbralTrigger:umbralTrigger, triggerGenerado:triggerGenerado, trigger:trigger,
-               sprLimboBoton:sprLimboBoton, nEjercitoRival:nEjercitoRival
-          });
-
-          mousePress = false;
-          mouseRelease = false;
-
-          doFromUsuarioYPartida(setAllVariables, socket, data);
+          doFromUsuarioYPartida(mainAfterSettings, socket, data);
      });
 });
 
@@ -428,120 +337,167 @@ io.on('connection', (socket) => {
 //#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
 //############################################################################################################################################################################################################################
 
-function cargarImagenesHuecos(socket) {
+function mainAfterSettings(socket, partida, usuario, data) {
+     if (partida != null && usuario != null) {
+          gestionHuecos(socket, data, partida, usuario);
+          gestionSwapLimbo(socket, data, partida, usuario);
+          gestionCartas(socket, data, partida, usuario);
+          gestionCartaSeleccionada(socket, data, partida, usuario);
+          gestionArrastrarCarta(socket, data, partida, usuario);
+          gestionMenu(socket, data, partida, usuario);
+          gestionCandado(socket, data, partida, usuario);
+          gestionTrigger(socket, data, partida, usuario);
+          gestionNuevoTurno(socket, data, partida, usuario);
+
+          // En cada step, enviamos las imágenes a cargar sólo cuando toca
+          // Gestionar que CADA VEZ QUE UN USUARIO CREA/SE UNA A UNA PARTIDA, ASIGNAR CARGAIMAGENES A TRUE PARA QUE LAS CARGUE EN SU SIGUIENTE MAIN.
+          if (usuario.cargaImagenesHuecos > 0) {
+               cargarImagenesHuecos(socket, partida, usuario);
+               --usuario.cargaImagenesHuecos;
+          }
+          if (usuario.cargaImagenesCartas > 0) {
+               cargarImagenesCartas(socket, partida, usuario);
+               --usuario.cargaImagenesCartas;
+          }
+          if (usuario.cargaImagenesMenus > 0) {
+               cargarImagenesMenus(socket, partida, usuario);
+               --usuario.cargaImagenesMenus;
+          }
+
+          // Enviamos la señal
+          socket.emit('main', {
+               isLadoNormal:isLadoNormal(partida, 0, usuario.usuarioID), hue:partida.huecos, car:partida.cartas, men:usuario.spMenuA, usuarioID:usuario.usuarioID, generalColocado:usuario.generalColocado,
+               comenzado:usuario.comenzado, candado:usuario.candado, xCampo:usuario.xCampo, menuScale:usuario.menuScale, imenuDraw:usuario.imenuDraw, umbralTrigger:usuario.umbralTrigger,
+               triggerGenerado:usuario.triggerGenerado, trigger:usuario.trigger, sprLimboBoton:usuario.sprLimboBoton, nEjercitoRival:usuario.nEjercitoRival
+          });
+
+          // Enviamos isLadoNormal para la primera carta. Será true si este cliente corresponde a las 31 primeras cartas.
+
+          usuario.mousePress = false;
+          usuario.mouseRelease = false;
+     }
+}
+
+function cargarImagenesHuecos(socket, partida, usuario) {
      var hue = new Array();
      for (j = 0; j < nHuecos; ++j) {
-          hue.push({hue:huecos[j].image});
+          var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
+          hue.push({hue:huecoUsuario.image});
      }
      socket.emit('cargarImagenesHuecos', {hue:hue});
 }
 
-function cargarImagenesCartas(socket) {
+function cargarImagenesCartas(socket, partida, usuario) {
      var car = new Array();
      for (i = 0; i < nCartas; ++i) {
-          car.push({car:cartas[i].cid, cla:cartas[i].sprClase, esp:cartas[i].sprEspecie, ele:cartas[i].sprElemento});
+          car.push({car:partida.cartas[i].cid, cla:partida.cartas[i].sprClase, esp:partida.cartas[i].sprEspecie, ele:partida.cartas[i].sprElemento});
      }
      socket.emit('cargarImagenesCartas', {car:car});
 }
 
-function cargarImagenesMenus(socket) {
-     socket.emit('cargarImagenesMenus', {men:spMenuA});
+function cargarImagenesMenus(socket, partida, usuario) {
+     socket.emit('cargarImagenesMenus', {men:usuario.spMenuA});
 }
 
-function gestionHuecos(socket, data) { // Simplemente gestión huecos
+function gestionHuecos(socket, data, partida, usuario) { // Simplemente gestión huecos
      for (var j = 0; j < nHuecos; ++j) {
+          var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
           // Los huecos colocados acorde.
           // Si no es Limbo (gestión normal) o es Limbo pero -> es tuyo y no pide swapear o es del rival y pide swapear, posición normal
-          if (huecos[j].ind == 2) {
+          if (huecoUsuario.ind == 2) {
                if (
-                    (!swapLimbo && miCampo(j)) || (swapLimbo && !miCampo(j))
+                    (!usuario.swapLimbo && miCampo(j)) || (usuario.swapLimbo && !miCampo(j))
                ) {
-                    huecos[j].x = tiendeAX(huecos[j].x, huecos[j].xstart + 50+xCampo, 40 + 1000*(swapeando == 0));
+                    huecoUsuario.x = tiendeAX(huecoUsuario.x, huecoUsuario.xstart + 50+usuario.xCampo, 40 + 1000*(usuario.swapeando == 0));
                }
                else {
-                    huecos[j].x = tiendeAX(huecos[j].x, 2200 + 50+xCampo, 40 + 1000*(swapeando == 0));
+                    huecoUsuario.x = tiendeAX(huecoUsuario.x, 2200 + 50+usuario.xCampo, 40 + 1000*(usuario.swapeando == 0));
                }
           }
           else {
-               huecos[j].x = huecos[j].xstart + 50+xCampo;
+               huecoUsuario.x = huecoUsuario.xstart + 50+usuario.xCampo;
           }
 
           // Las clases para comparar
-          if (huecos[j].vert) huecos[j].image = "sprCartaHuecoVert";
-          else huecos[j].image = "sprCartaHueco";
+          var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
+          if (partida.huecos[j].vert) huecoUsuario.image = "sprCartaHuecoVert";
+          else huecoUsuario.image = "sprCartaHueco";
 
-          if (!miCampo(j) && huecos[j].icarta != -1 && claseSeleccionada != '') {
-               var efectivo = getEfectivo(claseSeleccionada, cartas[huecos[j].icarta].clase);
-               if (efectivo == 1 || efectivo == 0) huecos[j].image = "sprCartaHuecoVerde";
-               else if (efectivo == -1) huecos[j].image = "sprCartaHuecoRojo";
+          if (!miCampo(j)) {
+               var jOcupado = isHuecoOcupado(usuario, partida, j);
+               if (jOcupado && usuario.claseSeleccionada != '' && !partida.huecos[j].vert) {
+                    var iCarta = getICarta(usuario, partida, j);
+                    var efectivo = getEfectivo(usuario.claseSeleccionada, partida.cartas[iCarta].clase);
+                    if (efectivo == 1 || efectivo == 0) huecoUsuario.image = "sprCartaHuecoVerde";
+                    else if (efectivo == -1) huecoUsuario.image = "sprCartaHuecoRojo";
+               }
           }
      }
 
-     if (swapeando > 0) --swapeando;
+     if (usuario.swapeando > 0) --usuario.swapeando;
 }
 
-function gestionSwapLimbo(socket, data) {
-     if (mousex > 1164+xCampo && mousex < 1164+xCampo+20 && mousey > 517 && mousey < 517+70) {
-          if (!swapLimbo) {
-               sprLimboBoton = "sprLimboBotonOnS";
+function gestionSwapLimbo(socket, data, partida, usuario) {
+     if (usuario.mousex > 1164+usuario.xCampo && usuario.mousex < 1164+usuario.xCampo+20 && usuario.mousey > 517 && usuario.mousey < 517+70) {
+          if (!usuario.swapLimbo) {
+               usuario.sprLimboBoton = "sprLimboBotonOnS";
           }
           else {
-               sprLimboBoton = "sprLimboBotonOffS";
+               usuario.sprLimboBoton = "sprLimboBotonOffS";
           }
 
-          if (mousePress) {
-               swapLimbo = !swapLimbo;
-               swapeando = ctSwapeando;
+          if (usuario.mousePress) {
+               usuario.swapLimbo = !usuario.swapLimbo;
+               usuario.swapeando = ctSwapeando;
           }
      }
      else {
-          if (!swapLimbo) {
-               sprLimboBoton = "sprLimboBotonOn";
+          if (!usuario.swapLimbo) {
+               usuario.sprLimboBoton = "sprLimboBotonOn";
           }
           else {
-               sprLimboBoton = "sprLimboBotonOff";
+               usuario.sprLimboBoton = "sprLimboBotonOff";
           }
      }
 }
 
-function gestionCartas(socket, data) {
+function gestionCartas(socket, data, partida, usuario) {
      for (var i = 0; i < nCartas; ++i) {
-          if (cartas[i].huecoOcupado >= 0) {
-               var idHueco = cartas[i].huecoOcupado;
-
-               if (idHueco < 31) cartas[i].volteada = false;
-               if (!generalColocado && idHueco > 0 && idHueco < 31) cartas[i].volteada = true;
-               if (comenzado && idHueco < 31) cartas[i].volteada = true;
-               if (idHueco < 31 && !candado) cartas[i].volteada = false;
-
-               var dif = angleDifference(cartas[i].angleDraw, cartas[i].angle);
-               cartas[i].angleDraw += Math.sign(dif)*Math.min(10, Math.abs(dif));
+          var huecoOcupado = getHuecoOcupadoPorLado(partida, i, usuario.usuarioID);
+          if (huecoOcupado >= 0) {
+               if (huecoOcupado < 31) partida.cartas[i].volteada = false;
+               if (!usuario.generalColocado && huecoOcupado > 0 && huecoOcupado < 31) partida.cartas[i].volteada = true;
+               if (usuario.comenzado && huecoOcupado < 31) partida.cartas[i].volteada = true;
+               if (huecoOcupado < 31 && !usuario.candado) partida.cartas[i].volteada = false;
           }
+
+          var dif = angleDifference(partida.cartas[i].angleDraw, partida.cartas[i].angle);
+          partida.cartas[i].angleDraw += Math.sign(dif)*Math.min(10, Math.abs(dif));
      }
 }
 
-function gestionCartaSeleccionada(socket, data) { // Mostramos la carta seleccionada, comprobando si está el ratón encima de cada una
-     // Crear variable local cartaDrawID para guardar la carta seleccionada y enviar el STRING al socket
-     cartaDrawID = -1;
+function gestionCartaSeleccionada(socket, data, partida, usuario) { // Mostramos la carta seleccionada, comprobando si está el ratón encima de cada una
      for (var i = 0; i < nCartas; ++i) {
-          cartas[i].seleccionada = false;
-          if (isSeleccionada(cartas[i])) {
-               cartaDrawID = cartas[i].cid;
-               cartas[i].seleccionada = true;
+          var cartaUsuario = getCartaUsuario(partida.cartas[i], usuario.usuarioID);
+          cartaUsuario.seleccionada = false;
+          if (isCartaSeleccionada(usuario, partida, i)) {
+               cartaUsuario.seleccionada = true;
           }
      }
 }
 
-function gestionArrastrarCarta(socket, data) { // Al clicar y mantener una carta, la arrastra
+function gestionArrastrarCarta(socket, data, partida, usuario) { // Al clicar y mantener una carta, la arrastra
      for (var i = 0; i < nCartas; ++i) { // Para cada carta...
-          if (isSeleccionada(cartas[i]) && mousePress) { // ... si tienes el ratón encima y pulsas, la marcas como agarrada
-               if (generalColocado || (!generalColocado && cartas[i].general)) {
+          var huecoOcupado = getHuecoOcupadoPorLado(partida, i, usuario.usuarioID);
+          var cartaUsuario = getCartaUsuario(partida.cartas[i], usuario.usuarioID);
+          if (usuario.mousePress && isCartaSeleccionada(usuario, partida, i)) { // ... si tienes el ratón encima y pulsas, la marcas como agarrada
+               if (usuario.generalColocado || (!usuario.generalColocado && partida.cartas[i].general)) {
                     // Si está volteada y en el Ejército no dejamos arrastrar hasta colocar el General
-                    if (miCampo(cartas[i].huecoOcupado)) {
+                    if (miCampo(huecoOcupado)) {
                          // Sólo puedo interactuar si es mía
-                         cartas[i].pulsada = true;
-                         cartas[i].xoff = mousex-cartas[i].x;
-                         cartas[i].yoff = mousey-cartas[i].y;
+                         cartaUsuario.pulsada = true;
+                         cartaUsuario.xoff = usuario.mousex-cartaUsuario.x;
+                         cartaUsuario.yoff = usuario.mousey-cartaUsuario.y;
                          break;
                     }
                     else {
@@ -552,246 +508,216 @@ function gestionArrastrarCarta(socket, data) { // Al clicar y mantener una carta
                     socket.emit('nuevoMensaje', {mid:0, desc:null}); // El General es la primera carta a robar
                }
           }
-          else if (mouseRelease) {
+          else if (usuario.mouseRelease) {
                // Justo al soltarla, si está tocando un hueco, se ajusta a él
-               if (cartas[i].pulsada) {
+               if (cartaUsuario.pulsada) {
                     var dejada = false; // ¿La dejas sobre hueco?
                     for (var j = 0; j < nHuecos; ++j) { // Tomando la carta pulsada, para cada hueco...
-                         if (isSeleccionada(huecos[j])) { // ... si estamos seleccionando ese hueco...
-                              var jp = cartas[i].huecoOcupado; // Hueco previo
-                              var swapea = huecos[j].ocupado && huecos[jp].ocupado && !huecos[jp].vert && !huecos[j].vert;
-                              if (!huecos[j].ocupado || swapea) { // Swap de Vanguardia
-                                   if (!cartas[i].general || (cartas[i].general && !huecos[j].vert)) {
-                                        // Si está el candado restringe la invocación
-                                        var invoca = candado && jp >= 61 && huecos[jp].vert && !huecos[j].vert;
-                                        if (!invoca || (invoca && trigger >= cartas[i].rango)) {
-                                             // Si está el candado restringue el desplazamiento
-                                             var desplaza = candado && isDeUnaZonaAOtra(jp, j, true);
-                                             if (!desplaza || (desplaza && !cartas[i].volteada && cartas[i].angle == 90)) {
-                                                  // No interactúes con el campo rival
-                                                  var tuCampo = miCampo(jp) && miCampo(j);
-                                                  if (tuCampo) {
+                         var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
+                         if (isHuecoSeleccionado(usuario, partida, j)) { // ... si estamos seleccionando ese hueco...
+                              var jp = partida.cartas[i].huecoOcupado; // Hueco previo
+                              var jOcupado = isHuecoOcupado(usuario, partida, j);
+                              var jpOcupado = isHuecoOcupado(usuario, partida, jp);
+                              // No interactúes con el campo rival
+                              var tuCampo = miCampo(jp) && miCampo(j);
+                              if (tuCampo) {
+                                   var swapea = jOcupado && jpOcupado && !partida.huecos[jp].vert && !partida.huecos[j].vert;
+                                   if (!jOcupado || swapea) { // Swap de Vanguardia
+                                        if (!partida.cartas[i].general || (partida.cartas[i].general && !partida.huecos[j].vert)) {
+                                             // Si está el candado restringe la invocación
+                                             var invoca = usuario.candado && jp >= 61 && partida.huecos[jp].vert && !partida.huecos[j].vert;
+                                             if (!invoca || (invoca && usuario.trigger >= partida.cartas[i].rango)) {
+                                                  // Si está el candado restringue el desplazamiento
+                                                  var desplaza = usuario.candado && isDeUnaZonaAOtra(jp, j, true);
+                                                  if (!desplaza || (desplaza && !partida.cartas[i].volteada && partida.cartas[i].angle == 90)) {
                                                        if (invoca) {
-                                                            trigger -= cartas[i].rango;
-                                                            socket.emit('nuevoMensaje', {mid:3, desc:cartas[i].rango}); // Trigger pagado por invocación
+                                                            usuario.trigger -= partida.cartas[i].rango;
+                                                            socket.emit('nuevoMensaje', {mid:3, desc:partida.cartas[i].rango}); // Trigger pagado por invocación
                                                        }
                                                        // Si viene boca abajo del Ejército, lo pone boca arriba
-                                                       if (jp < 31) cartas[i].volteada = false;
-                                                       if (!swapea) huecos[jp].ocupado = false; // Desocupa el anterior si no swapea
-                                                       huecos[j].ocupado = true; // Lo ocupa
+                                                       if (jp < 31) partida.cartas[i].volteada = false;
                                                        dejada = true;
-                                                       if (!generalColocado) { // Comenzamos oficialmente la partida
-                                                            generalColocado = true;
-                                                            huecos[0].x = -9000;
-                                                            huecos[0].xstart = -9000;
+                                                       if (!usuario.generalColocado) { // Comenzamos oficialmente la partida
+                                                            usuario.generalColocado = true;
+                                                            var huecoUsuario0 = getHuecoUsuario(partida.huecos[0], usuario.usuarioID);
+                                                            huecoUsuario0.x = -9000;
+                                                            huecoUsuario0.xstart = -9000;
                                                        }
                                                        else { // Tras colocar el general, debemos colocar 2 criaturas fuera (no deja que sea el General a estas alturas)
                                                             if (jp < 31 && j >= 31) { // La colocamos fuera con éxito
-                                                                 ++nComenzado;
-                                                                 if (nComenzado == 2) comenzado = true;
+                                                                 ++usuario.nComenzado;
+                                                                 if (usuario.nComenzado == 2) usuario.comenzado = true;
                                                             }
                                                             else if (jp >= 31 && j < 31) { // Si eres graciosillo y la vuelves adentro lo tenemos en cuenta
-                                                                 --nComenzado;
+                                                                 --usuario.nComenzado;
                                                             }
                                                        }
                                                        // Moverse de una zona a otra pone boca abajo en horizontal si hay candado
                                                        if (desplaza) {
-                                                            cartas[i].volteada = true;
-                                                            cartas[i].angle = 0;
-                                                            cartas[i].xoffset = 0;
-                                                            cartas[i].yoffset = offset;
-                                                            cartas[i].width = cartaHeight;
-                                                            cartas[i].height = cartaWidth;
+                                                            partida.cartas[i].volteada = true;
+                                                            partida.cartas[i].angle = 0;
                                                             socket.emit('nuevoMensaje', {mid:9, desc:null}); // Desplazas
                                                        }
                                                        // Swapear Criaturas de la Vanguardia
                                                        if (swapea) {
-                                                            var is = huecos[j].icarta; // i siguiente
+                                                            var is = getICarta(usuario, partida, j); // i siguiente
                                                             // Carta de la Vanguardia objetivo a la anterior Vanguardia
-                                                            cartas[is].huecoOcupado = jp;
-                                                            huecos[jp].icarta = is;
+                                                            partida.cartas[is].huecoOcupado = jp;
                                                        }
 
                                                        // Índices
                                                        var ls = getNVangRes(jp), rs = getNVangRes(j);
-
-                                                       // Por defecto desocupamos ambos huecos de las Reservas
-                                                       huecos[jp+ls].ocupado = false;
-                                                       huecos[jp+ls].icarta = -1;
-                                                       huecos[j+rs].ocupado = false;
-                                                       huecos[j+rs].icarta = -1;
+                                                       var jrsOcupado = isHuecoOcupado(usuario, partida, j+rs);
 
                                                        // Swapear Criaturas de las Reservas al mover entre Vanguardias
                                                        if (getZona(jp) > 0 && getZona(j) > 0) {
                                                             for (var k = 0; k < nCartas; ++k) {
                                                                  // Carta de la Reserva objetivo (si hay) a la anterior Reserva, sólo en caso de que el hueco objetivo esté vacío
-                                                                 if (cartas[k].huecoOcupado == j+rs && huecos[j+rs].ocupado) {
-                                                                      cartas[k].huecoOcupado = jp+ls;
-                                                                      huecos[jp+ls].icarta = k;
-                                                                      huecos[jp+ls].ocupado = true;
+                                                                 if (partida.cartas[k].huecoOcupado == j+rs && jrsOcupado) {
+                                                                      partida.cartas[k].huecoOcupado = jp+ls;
                                                                  }
                                                                  // Carta de la Reserva anterior (si hay) a la Reserva objetivo
                                                                  //else if (cartas[k].huecoOcupado == jp+ls && getZona(jp) == getZona(j)) {
                                                                  //     cartas[k].huecoOcupado = j+rs;
-                                                                 //     huecos[j+rs].icarta = k;
-                                                                 //     huecos[j+rs].ocupado = true;
                                                                  //}
                                                             }
                                                        }
 
                                                        // Oficializamos el nuevo hueco ocupado
-                                                       cartas[i].huecoOcupado = j;
-                                                       huecos[j].icarta = i;
+                                                       partida.cartas[i].huecoOcupado = j;
 
                                                        // Al mover a un hueco no girable, lo pone en vertical y lo ajusta/resetea
-                                                       if (huecos[j].vert) {
-                                                            cartas[i].angle = 90;
-                                                            cartas[i].xoffset = 0;
-                                                            cartas[i].yoffset = 0;
-                                                            cartas[i].width = cartaWidth;
-                                                            cartas[i].height = cartaHeight;
-                                                            cartas[i].pv = cartas[i].pvmax;
-                                                            cartas[i].volteada = false;
-                                                            if (imenu == i) {
-                                                                 isMenu = false;
-                                                            }
-                                                       }
-                                                       else {
-                                                            if (cartas[i].angle == 90 || cartas[i].angle == 270) { // Al poner en hueco girable... dale offset hombre
-                                                                 cartas[i].xoffset = offset;
-                                                                 cartas[i].yoffset = 0;
+                                                       if (partida.huecos[j].vert) {
+                                                            partida.cartas[i].angle = 90;
+                                                            partida.cartas[i].pv = partida.cartas[i].pvmax;
+                                                            partida.cartas[i].volteada = false;
+                                                            if (usuario.imenu == i) {
+                                                                 usuario.isMenu = false;
                                                             }
                                                        }
                                                   }
-                                                  else {
-                                                       socket.emit('nuevoMensaje', {mid:12, desc:null}); // Interactuar con campo rival
+                                                  else if (desplaza) {
+                                                       socket.emit('nuevoMensaje', {mid:10, desc:null}); // No puede desplazar
                                                   }
                                              }
-                                             else if (desplaza) {
-                                                  socket.emit('nuevoMensaje', {mid:10, desc:null}); // No puede desplazar
+                                             else if (invoca) {
+                                                  socket.emit('nuevoMensaje', {mid:4, desc:partida.cartas[i].rango}); // Trigger para invocación no suficiente
                                              }
                                         }
-                                        else if (invoca) {
-                                             socket.emit('nuevoMensaje', {mid:4, desc:cartas[i].rango}); // Trigger para invocación no suficiente
+                                        else {
+                                             socket.emit('nuevoMensaje', {mid:1, desc:null}); // No puedes sacar el General de la Vanguardia
                                         }
                                    }
-                                   else {
-                                        socket.emit('nuevoMensaje', {mid:1, desc:null}); // No puedes sacar el General de la Vanguardia
+                                   else if (jOcupado && partida.cartas[i].huecoOcupado != j) {
+                                        socket.emit('nuevoMensaje', {mid:11, desc:null}); // Hueco ocupado, no desplazas
                                    }
                               }
-                              else if (huecos[j].ocupado && cartas[i].huecoOcupado != j) {
-                                   socket.emit('nuevoMensaje', {mid:11, desc:null}); // Hueco ocupado, no desplazas
+                              else {
+                                   socket.emit('nuevoMensaje', {mid:12, desc:null}); // Interactuar con campo rival
                               }
                          }
                     }
                     if (!dejada) { // Si no encontraste hueco...
-                         cartas[i].x = cartas[i].xstart;
-                         cartas[i].y = cartas[i].ystart;
+                         cartaUsuario.x = cartaUsuario.xstart;
+                         cartaUsuario.y = cartaUsuario.ystart;
                     }
 
-                    cartas[i].pulsada = false; // ... en cuanto sueltas el click se te va.
+                    cartaUsuario.pulsada = false; // ... en cuanto sueltas el click se te va.
                }
 
-               if (cartas[i].pulsada) {
-                    cartas[i].xpress = 0;
-                    cartas[i].ypress = 0;
+               if (cartaUsuario.pulsada) {
+                    cartaUsuario.xpress = 0;
+                    cartaUsuario.ypress = 0;
                }
           }
 
           // Si está pulsada, la arrastramos
-          if (cartas[i].pulsada) {
-               cartas[i].x = mousex-cartas[i].xoff;
-               cartas[i].y = mousey-cartas[i].yoff;
+          if (cartaUsuario.pulsada) {
+               cartaUsuario.x = usuario.mousex-cartaUsuario.xoff;
+               cartaUsuario.y = usuario.mousey-cartaUsuario.yoff;
           }
           // Las coordenadas de las cartas, se arrastran automáticamente hasta el hueco
           else {
                // Excepto si están fuera
-               if (cartas[i].huecoOcupado == -1) {
-                    cartas[i].y = -100;
-                    cartas[i].ystart = -100;
+               if (huecoOcupado == -1) {
+                    cartaUsuario.y = -100;
+                    cartaUsuario.ystart = -100;
                }
                else {
-                    cartas[i].x = huecos[cartas[i].huecoOcupado].x;
-                    cartas[i].y = huecos[cartas[i].huecoOcupado].y;
-                    cartas[i].xstart = huecos[cartas[i].huecoOcupado].x;
-                    cartas[i].ystart = huecos[cartas[i].huecoOcupado].y
+                    var huecoUsuario = getHuecoUsuario(partida.huecos[huecoOcupado], usuario.usuarioID);
+                    cartaUsuario.x = huecoUsuario.x;
+                    cartaUsuario.y = huecoUsuario.y;
+                    cartaUsuario.xstart = huecoUsuario.x;
+                    cartaUsuario.ystart = huecoUsuario.y;
                }
           }
      }
 }
 
-function gestionMenu(socket, data) { // Todas las opciones del menú y su control
+function gestionMenu(socket, data, partida, usuario) { // Todas las opciones del menú y su control
      for (var i = 0; i < nCartas; ++i) { // Para cada carta...
-          if (isSeleccionada(cartas[i])) { // ... seleccionada que se puede girar ...
-               if (mousePress && cartas[i].pulsada) {
+          var huecoOcupado = getHuecoOcupadoPorLado(partida, i, usuario.usuarioID);
+          var cartaUsuario = getCartaUsuario(partida.cartas[i], usuario.usuarioID);
+          if (usuario.mousePress && cartaUsuario.pulsada) {
+               if (isCartaSeleccionada(usuario, partida, i)) { // ... seleccionada que se puede girar ...
                     // Si es tuya
-                    if (miCampo(cartas[i].huecoOcupado)) {
-                         cartas[i].xpress = cartas[i].x;
-                         cartas[i].ypress = cartas[i].y;
-                         if (menuSeleccionado == -1) {
-                              isMenu = false;
-                              claseSeleccionada = '';
+                    if (miCampo(huecoOcupado)) {
+                         cartaUsuario.xpress = cartaUsuario.x;
+                         cartaUsuario.ypress = cartaUsuario.y;
+                         if (usuario.menuSeleccionado == -1) {
+                              usuario.isMenu = false;
+                              if (usuario.claseSeleccionada != '') {
+                                   usuario.cargaImagenesHuecos = 2;
+                                   usuario.claseSeleccionada = '';
+                              }
                          }
                     }
                     else {
                          socket.emit('nuevoMensaje', {mid:12, desc:null}); // Toca tus cartas sólo
                     }
                }
-               else if (mouseRelease && !huecos[cartas[i].huecoOcupado].vert) {
-                    if (miCampo(cartas[i].huecoOcupado)) {
-                         if (Math.abs(cartas[i].x-cartas[i].xpress) < 10 && Math.abs(cartas[i].y-cartas[i].ypress) < 10) {
-
-                              // Ocultamos el menú si procede
-                              if (isMenu && menuScale == 1) {
-                                   // Si has pulsado sobre el mismo que está mostrando su menú y está mostrado, lo oculta.
-                                   // Sólo si NO hay seleccionado ningún menú
-                                   if (menuSeleccionado == -1) {
-                                        isMenu = false;
-                                        imenu = i;
-                                        claseSeleccionada = '';
-                                   }
-                              }
-                              // Mostramos el menú en caso contrario
-                              else if (!isMenu && menuScale == 0) {
-                                   isMenu = true
-                                   imenu = i;
-                                   claseSeleccionada = cartas[i].clase;
+          }
+          else if (usuario.mouseRelease && huecoOcupado >= 0 && !partida.huecos[huecoOcupado].vert) {
+               if (isCartaSeleccionada(usuario, partida, i) && Math.abs(cartaUsuario.x-cartaUsuario.xpress) < 10 && Math.abs(cartaUsuario.y-cartaUsuario.ypress) < 10) {
+                    // Ocultamos el menú si procede
+                    if (usuario.isMenu && usuario.menuScale == 1) {
+                         // Si has pulsado sobre el mismo que está mostrando su menú y está mostrado, lo oculta.
+                         // Sólo si NO hay seleccionado ningún menú
+                         if (usuario.menuSeleccionado == -1) {
+                              usuario.isMenu = false;
+                              usuario.imenu = i;
+                              if (usuario.claseSeleccionada != '') {
+                                   usuario.cargaImagenesHuecos = 2;
+                                   usuario.claseSeleccionada = '';
                               }
                          }
                     }
-                    else {
-                         socket.emit('nuevoMensaje', {mid:12, desc:null}); // No tocar el campo rival
+                    // Mostramos el menú en caso contrario
+                    else if (!usuario.isMenu && usuario.menuScale == 0) {
+                         usuario.isMenu = true
+                         usuario.imenu = i;
+                         if (usuario.claseSeleccionada != partida.cartas[i].clase) {
+                              usuario.cargaImagenesHuecos = 2;
+                              usuario.claseSeleccionada = partida.cartas[i].clase;
+                         }
                     }
                }
           }
 
           // Seleccionamos las opciones del menú
-          if (mousePress && isMenu && i == imenu) {
+          if (usuario.mousePress && usuario.isMenu && i == usuario.imenu) {
 
-               if (menuSeleccionado == 0) { // Restar PV
-                    cartas[i].pv = Math.max( cartas[i].pv-1, 0);
+               if (usuario.menuSeleccionado == 0) { // Restar PV
+                    partida.cartas[i].pv = Math.max( partida.cartas[i].pv-1, 0);
                }
-               else if (menuSeleccionado == 1) { // Girar
+               else if (usuario.menuSeleccionado == 1) { // Girar
                     // Si el candado está ACTIVADO no deja rotarla boca abajo
-                    if (!candado || candado && !cartas[i].volteada) {
-                         cartas[i].angle -= 90;
-                         if (cartas[i].angle <= -90) cartas[i].angle = 270;
-
-                         if (cartas[i].angle == 90 || cartas[i].angle == 270) {
-                              cartas[i].xoffset = offset;
-                              cartas[i].yoffset = 0;
-                              cartas[i].width = cartaWidth;
-                              cartas[i].height = cartaHeight;
-                         }
-                         else {
-                              cartas[i].xoffset = 0;
-                              cartas[i].yoffset = offset;
-                              cartas[i].width = cartaHeight;
-                              cartas[i].height = cartaWidth;
-                         }
+                    if (!usuario.candado || usuario.candado && !partida.cartas[i].volteada) {
+                         partida.cartas[i].angle -= 90;
+                         if (partida.cartas[i].angle <= -90) partida.cartas[i].angle = 270;
                     }
                     else {
-                         if (cartas[i].angle == 90 || cartas[i].angle == 270) {
+                         if (partida.cartas[i].angle == 90 || partida.cartas[i].angle == 270) {
                               socket.emit('nuevoMensaje', {mid:7, desc:null}); // No rotar sacrificada
                          }
                          else {
@@ -799,129 +725,126 @@ function gestionMenu(socket, data) { // Todas las opciones del menú y su contro
                          }
                     }
                }
-               else if (menuSeleccionado == 2) { // Voltear
-                    if (!candado || candado && !cartas[i].volteada) {
-                         cartas[i].volteada = !cartas[i].volteada;
+               else if (usuario.menuSeleccionado == 2) { // Voltear
+                    if (!usuario.candado || usuario.candado && !partida.cartas[i].volteada) {
+                         partida.cartas[i].volteada = !partida.cartas[i].volteada;
 
                          // Si el candado está ACTIVADO, funcionalidad sacrificio, sumamos Trigger acorde y siempre la pone en vertical
-                         if (candado && cartas[i].volteada) {
-                              cartas[i].angle = 90;
-                              var dif = umbralTrigger - triggerGenerado;
-                              var ganar = Math.min(cartas[i].rango+1, dif);
-                              trigger += ganar;
-                              triggerGenerado += ganar;
+                         if (usuario.candado && partida.cartas[i].volteada) {
+                              partida.cartas[i].angle = 90;
+                              var dif = usuario.umbralTrigger - usuario.triggerGenerado;
+                              var ganar = Math.min(partida.cartas[i].rango+1, dif);
+                              usuario.trigger += ganar;
+                              usuario.triggerGenerado += ganar;
                               socket.emit('nuevoMensaje', {mid:2, desc:ganar}); // Trigger ganado por sacrificio
                          }
                     }
                     else {
-                         if (cartas[i].angle == 90) {
+                         if (partida.cartas[i].angle == 90) {
                               socket.emit('nuevoMensaje', {mid:5, desc:null}); // No deja voltear sacrificada
                          }
-                         else if (cartas[i].angle == 0) {
+                         else if (partida.cartas[i].angle == 0) {
                               socket.emit('nuevoMensaje', {mid:6, desc:null}); // No deja voltear desplazada
                          }
                     }
                }
-               else if (menuSeleccionado == 3) { // Sumar PV
-                    cartas[i].pv = Math.min( cartas[i].pv+1, cartas[i].pvmax);
+               else if (usuario.menuSeleccionado == 3) { // Sumar PV
+                    partida.cartas[i].pv = Math.min( partida.cartas[i].pv+1, partida.cartas[i].pvmax);
                }
           }
      }
 
      // Animación de menú gradual al aparecer/irse
-     if (isMenu) {
-          menuScale = Math.min(menuScale+0.05, 1);
-          imenuDraw = imenu;
+     if (usuario.isMenu) {
+          usuario.menuScale = Math.min(usuario.menuScale+0.05, 1);
+          usuario.imenuDraw = usuario.imenu;
      }
      else {
-          menuScale = Math.max(menuScale-0.05, 0);
-          if (menuScale == 0) imenuDraw = imenu;
+          usuario.menuScale = Math.max(usuario.menuScale-0.05, 0);
+          if (usuario.menuScale == 0) usuario.imenuDraw = usuario.imenu;
      }
 
      // Selecciona el menú correcto
-     menuSeleccionado = -1;
-     if (menuScale > 0) {
+     usuario.menuSeleccionado = -1;
+
+     var cartaUsuarioDraw = getCartaUsuario(partida.cartas[usuario.imenuDraw], usuario.usuarioID);
+     if (usuario.menuScale > 0) {
           for (var m = 0; m < 8; ++m) {
                // Según la distancia y el ángulo del ratón con el centro de la carta seleccionamos o no cada sección
-               var x = cartas[imenuDraw].x+cartaWidth/2+offset;
-               var y = cartas[imenuDraw].y+cartaHeight/2;
-               var dist = Math.sqrt(Math.pow(mousex-x, 2) + Math.pow(mousey-y, 2));
-               var ang = pointDirection(mousex, mousey, x, y);
+               var x = cartaUsuarioDraw.x+cartaWidth/2+offset;
+               var y = cartaUsuarioDraw.y+cartaHeight/2;
+               var dist = Math.sqrt(Math.pow(usuario.mousex-x, 2) + Math.pow(usuario.mousey-y, 2));
+               var ang = pointDirection(usuario.mousex, usuario.mousey, x, y);
 
                if (inRange(dist, 30, 75) && absAngleDifference(ang, m*45+45+22.5) <= 22.5) {
-                    spMenuA[m] = "sprMenuAS";
-                    menuSeleccionado = m+1;
-                    if (menuSeleccionado == 8) menuSeleccionado = 0;
+                    if (usuario.spMenuA[m] != "sprMenuAS") {
+                         usuario.cargaImagenesMenus = 1;
+                         usuario.spMenuA[m] = "sprMenuAS";
+                    }
+                    usuario.menuSeleccionado = m+1;
+                    if (usuario.menuSeleccionado == 8) usuario.menuSeleccionado = 0;
                }
                else {
-                    spMenuA[m] = "sprMenuA";
+                    if (usuario.spMenuA[m] != "sprMenuA") {
+                         usuario.cargaImagenesMenus = 1;
+                         usuario.spMenuA[m] = "sprMenuA";
+                    }
                }
           }
-          cargarImagenesMenus(socket);
      }
 }
 
-function gestionCandado(socket, data) { // Permite bloquear o desbloquear las normas
-     if (mousex <= 70 && mousey <= 70) {
-          if (mousePress) { // Al hacer click, alterna
-               candado = !candado;
+function gestionCandado(socket, data, partida, usuario) { // Permite bloquear o desbloquear las normas
+     if (usuario.mousex <= 70 && usuario.mousey <= 70) {
+          if (usuario.mousePress) { // Al hacer click, alterna
+               usuario.candado = !usuario.candado;
           }
      }
 }
 
-function gestionTrigger(socket, data) { // Gestión del umbral de Trigger y el Trigger generado
-     if (comenzado) {
+function gestionTrigger(socket, data, partida, usuario) { // Gestión del umbral de Trigger y el Trigger generado
+     if (usuario.comenzado) {
           // Sumamos o restamos Trigger
-          var dif = umbralTrigger - triggerGenerado;
+          var dif = usuario.umbralTrigger - usuario.triggerGenerado;
           var ganar = Math.min(1, dif);
 
           // UP
-          if (comenzado && mousex >= 970 && mousex <= 970+25 && mousey >= 665 && mousey < 665+25) {
-               triggerFlechaUAngle = angular(triggerFlechaUAngle+5);
-
-               if (mousePress) {
-                    if (candado) {
-                         trigger = Math.min(trigger+ganar, 12);
-                         triggerGenerado = Math.min(triggerGenerado+ganar, 12);
+          if (usuario.comenzado && usuario.mousex >= 970 && usuario.mousex <= 970+25 && usuario.mousey >= 665 && usuario.mousey < 665+25) {
+               if (usuario.mousePress) {
+                    if (usuario.candado) {
+                         usuario.trigger = Math.min(usuario.trigger+ganar, 12);
+                         usuario.triggerGenerado = Math.min(usuario.triggerGenerado+ganar, 12);
                     }
                     else {
-                         trigger = Math.min(trigger+1, 12);
+                         usuario.trigger = Math.min(usuario.trigger+1, 12);
                     }
                }
           }
-          else {
-               if (triggerFlechaUAngle != 0) triggerFlechaUAngle = angular(triggerFlechaUAngle+5);
-          }
           // DOWN
-          if (comenzado && mousex >= 970 && mousex <= 970+25 && mousey >= 690 && mousey < 690+25) {
-               triggerFlechaDAngle = angular(triggerFlechaDAngle+5);
-
-               if (mousePress) {
-                    trigger = Math.max(trigger-1, 0);
+          if (usuario.comenzado && usuario.mousex >= 970 && usuario.mousex <= 970+25 && usuario.mousey >= 690 && usuario.mousey < 690+25) {
+               if (usuario.mousePress) {
+                    usuario.trigger = Math.max(usuario.trigger-1, 0);
                }
-          }
-          else {
-               if (triggerFlechaDAngle != 0) triggerFlechaDAngle = angular(triggerFlechaDAngle+5);
           }
 
           // Reiniciamos el Trigger generado
-          if (comenzado && mousex >= 920 && mousex <= 920+50 && mousey >= 660 && mousey < 660+50) {
-               if (mousePress) {
-                    triggerGenerado = 0;
-                    trigger = 0;
+          if (usuario.comenzado && usuario.mousex >= 920 && usuario.mousex <= 920+50 && usuario.mousey >= 660 && usuario.mousey < 660+50) {
+               if (usuario.mousePress) {
+                    usuario.triggerGenerado = 0;
+                    usuario.trigger = 0;
                }
           }
      }
 }
 
-function gestionNuevoTurno(socket, data) { // Iniciamos un nuevo turno
-     if (comenzado && mousePress && mousex > 1100-150 && mousex < 1100+150 && mousey > 518 && mousey < 518+50) {
-          setNuevoTurno();
+function gestionNuevoTurno(socket, data, partida, usuario) { // Iniciamos un nuevo turno
+     if (usuario.comenzado && usuario.mousePress && usuario.mousex > 1100-150 && usuario.mousex < 1100+150 && usuario.mousey > 518 && usuario.mousey < 518+50) {
+          setNuevoTurno(partida, usuario);
      }
 }
 
 //############################################################################################################################################################################################################################
-//#################################### MÉTODOS HELPER #############################################################################################################################################################
+//#################################### MÉT-ODOS HELPER #############################################################################################################################################################
 //############################################################################################################################################################################################################################
 
 function getEfectivo(a, d) { // Atacante vs defensor. 1 si es efectivo y hace daño, -1 si es débil y él se hace daño, 0 si es empate y ambos se hacen daño
@@ -938,7 +861,7 @@ function getEfectivo(a, d) { // Atacante vs defensor. 1 si es efectivo y hace da
 }
 
 function miCampo(i) { // Devuelve si el índice pertenece a tus huecos y no del rival
-     return i < 93;
+     return i >= 0 && i < 93;
 }
 
 function isDeUnaZonaAOtra(i, j, isDespl) { // Comprueba si las posiciones "i" y "j" están en Zonas distintas (implícito: en huecos !vert).
@@ -967,48 +890,196 @@ function getNVangRes(i) { // Devuelve cuanto debes sumar/restar a la posición d
      else return 3;
 }
 
-function setNuevoTurno() {
+function setNuevoTurno(partida, usuario) {
 	// Calculamos el Umbral de Trigger
-	umbralTrigger = 0;
+	usuario.umbralTrigger = 0;
 	for (var j = 0; j < nHuecos; ++j) {
-		if (!huecos[j].vert && !huecos[j].ocupado && miCampo(j)) ++umbralTrigger;
+          var jOcupado = isHuecoOcupado(usuario, partida, j);
+		if (!partida.huecos[j].vert && !jOcupado && miCampo(j)) ++usuario.umbralTrigger;
 	}
-	umbralTrigger = Math.round(umbralTrigger*relacionUmbralTrigger);
+	usuario.umbralTrigger = Math.round(usuario.umbralTrigger*relacionUmbralTrigger);
 
 	// Volteamos boca arriba y en vertical todas las cartas, reiniciamos el Trigger...
-	trigger = 0;
-	triggerGenerado = 0;
-	isMenu = false;
+	usuario.trigger = 0;
+	usuario.triggerGenerado = 0;
+	usuario.isMenu = false;
 
-	for (var i = 0; i < nCartas/2; ++i) {
-		// Sólo reinicia TUS cartas. Las del rival quedan en su posición para reaccionar a ellas
-		if (miCampo(cartas[i].huecoOcupado)) {
-			cartas[i].volteada = false;
-			cartas[i].angle = 90;
+	for (var i = 0; i < nCartas; ++i) {
+		// Sólo reinicia TUS cartas. Las del rival quedan en su posición para reaccionar a ellas4
+          var huecoOcupado = getHuecoOcupadoPorLado(partida, i, usuario.usuarioID);
+		if (miCampo(huecoOcupado)) {
+			partida.cartas[i].volteada = false;
+			partida.cartas[i].angle = 90;
 		}
 	}
 }
 
-function nuevaPartida(data) { // Creamos una nueva partida con todos los datos para ir tirando
-     partidas.push(new obPartida());
-     partidas[nPartidas].partidaID = data.partidaID;
+function nuevaPartida(data, crea) { // Creamos una nueva partida con t-odos los datos para ir tirando
+     // Sólo creamos la partida la primera vez
+     var ind = -1;
 
-     // Rellenamos el Creador o el Rival según haya hueco
-     var ret = existeUsuario(nPartidas, data.usuarioID);
-     if (ret == 0) partidas[nPartidas].usuarios[0].usuarioID = data.usuarioID;
-     else if (ret == 1) partidas[nPartidas].usuarios[1].usuarioID = data.usuarioID;
+     if (crea) {
+          partidas.push(new obPartida());
+          partidas[nPartidas].partidaID = data.partidaID;
+          ind = nPartidas;
 
-     ++nPartidas;
+          // TODO TRUCOS
+          partidas[nPartidas].usuarios[0].generalColocado = true;
+          partidas[nPartidas].usuarios[0].nComenzado = 2;
+          partidas[nPartidas].usuarios[0].comenzado = true;
+          partidas[nPartidas].usuarios[1].generalColocado = true;
+          partidas[nPartidas].usuarios[1].nComenzado = 2;
+          partidas[nPartidas].usuarios[1].comenzado = true;
+     }
+     else {
+          for (var i = 0; i < nPartidas; ++i) {
+               if (partidas[i].partidaID == data.partidaID) {
+                    ind = i;
+                    break;
+               }
+          }
+     }
+
+     // Rellenamos el Creador o el Rival según haya hueco.
+     // Si el primer usuario está vacío inserta al creador...
+     if (partidas[ind].usuarios[0].usuarioID == "") partidas[ind].usuarios[0].usuarioID = data.usuarioID;
+     // Si no, si no eres el creador y hay hueco en el segundo, inserta al rival
+     else if (partidas[ind].usuarios[0].usuarioID != data.usuarioID && partidas[ind].usuarios[1].usuarioID == "") partidas[ind].usuarios[1].usuarioID = data.usuarioID;
+     // Si no, no te asignas a ninguna partida
+
+     if (crea) ++nPartidas;
 }
 
-function existeUsuario(i, usuario) { // Si el usuario no existe en la partida i, devuelve 0. Si existe como Creador, 1. Si existe como rival, 2.
-     if (partidas[i].usuarios[0].usuarioID == usuario) return 1;
-     else if (partidas[i].usuarios[1].usuarioID == usuario) return 2;
-     else return 0;
+function isCartaSeleccionada(usuario, partida, iCarta) { // ¿Estás encima de la carta?
+     var carta = partida.cartas[iCarta];
+     var huecoOcupado = getHuecoOcupadoPorLado(partida, iCarta, usuario.usuarioID);
+     if (huecoOcupado >= 0) {
+          var hueco = partida.huecos[huecoOcupado];
+          var cartaUsuario = getCartaUsuario(partida.cartas[iCarta], usuario.usuarioID);
+          return usuario.mousex > cartaUsuario.x+getCartaXOffset(carta, hueco) && usuario.mousex < cartaUsuario.x+getCartaXOffset(carta, hueco)+getCartaWidth(carta)
+          && usuario.mousey > cartaUsuario.y+getCartaYOffset(carta, hueco) && usuario.mousey < cartaUsuario.y+getCartaYOffset(carta, hueco)+getCartaHeight(carta);
+     }
+     else return false;
+}
+
+function isHuecoSeleccionado(usuario, partida, jHueco) { // ¿Estás encima del hueco?
+     if (jHueco >= 0) {
+          var hueco = partida.huecos[jHueco];
+          return usuario.mousex > getHuecoX(hueco, usuario.usuarioID)+hueco.xoffset && usuario.mousex < getHuecoX(hueco, usuario.usuarioID)+hueco.xoffset+hueco.width
+          && usuario.mousey > getHuecoY(hueco, usuario.usuarioID)+hueco.yoffset && usuario.mousey < getHuecoY(hueco, usuario.usuarioID)+hueco.yoffset+hueco.height;
+     }
+     else return false;
+}
+
+function getCartaUsuario(carta, usuarioID) {
+     if (carta.cartaUsuario[0].usuarioID == usuarioID) return carta.cartaUsuario[0];
+     else return carta.cartaUsuario[1];
+}
+
+function getHuecoUsuario(hueco, usuarioID) {
+     if (hueco.huecoUsuario[0].usuarioID == usuarioID) return hueco.huecoUsuario[0];
+     else return hueco.huecoUsuario[1];
+}
+
+// Nos indica si el usuario que consulta está consultando una carta de su lado (normal) o no
+function isLadoNormal(partida, iCarta, usuarioID) {
+     if (iCarta <= 30) {
+          return partida.usuarios[0].usuarioID == usuarioID;
+     }
+     else {
+          return partida.usuarios[1].usuarioID == usuarioID;
+     }
+}
+
+// Obtenemos el hueco en el lado normal, si la carta es tuya, o en el lado alterado, si es del rival
+function getHuecoOcupadoPorLado(partida, iCarta, usuarioID) {
+     var isTuLado = isLadoNormal(partida, iCarta, usuarioID);
+     var huecoOcupado = partida.cartas[iCarta].huecoOcupado;
+
+     // Si es tu lado, devuelve el hueco sin problemas
+     if (isTuLado) return huecoOcupado;
+     // Si es el lado rival... debes moverlas a su lado
+     else {
+          // Si están en el Ejército, devuelve -1, pues no deben mostrarse ni interactuarse de ninguna forma
+          if (huecoOcupado <= 30) return -1;
+          // Si no, reajusta para el lado rival
+          else {
+               return huecoOcupado+62;
+          }
+     }
+}
+
+function isHuecoOcupado(usuario, partida, jHueco) { // ¿Está el hueco ocupado? Iteramos por todas las cartas para ahorrarnos guardar la variable ocupado
+     return getICarta(usuario, partida, jHueco) != -1;
+}
+
+function getICarta(usuario, partida, jHueco) { // Si está ocupado el hueco, obtiene qué carta es
+     for (var i = 0; i < nCartas; ++i) {
+          if (getHuecoOcupadoPorLado(partida, i, usuario.usuarioID) == jHueco) return i;
+     }
+     return -1;
+}
+
+function getCartaXOffset(carta, hueco) {
+     if (hueco.vert) return 0;
+     else {
+          if (carta.angle == 0 || carta.angle == 180) return 0;
+          else return offset;
+     }
+}
+
+function getCartaYOffset(carta, hueco) {
+     if (hueco.vert) return 0;
+     else {
+          if (carta.angle == 0 || carta.angle == 180) return offset;
+          else return 0;
+     }
+}
+
+function getCartaWidth(carta) {
+     if (carta.angle == 0 || carta.angle == 180) return cartaHeight;
+     else return cartaWidth;
+}
+
+function getCartaHeight(carta) {
+     if (carta.angle == 0 || carta.angle == 180) return cartaWidth;
+     else return cartaHeight;
+}
+
+function getHuecoX(hueco, usuarioID) {
+     if (hueco.huecoUsuario[0].usuarioID == usuarioID) return hueco.huecoUsuario[0].x;
+     else return hueco.huecoUsuario[1].x;
+}
+
+function getHuecoY(hueco, usuarioID) {
+     if (hueco.huecoUsuario[0].usuarioID == usuarioID) return hueco.huecoUsuario[0].y;
+     else return hueco.huecoUsuario[1].y;
+}
+
+// Devuelve los huecos iniciales de las cartas al crear y unirte a partida
+function getHuecosInicialesCartas(start) {
+     var huecos = "";
+     for (var i = start; i < (start+nCartas/2); ++i) {
+          huecos += conCeros(i);
+     }
+     return huecos;
+}
+
+// Dado un array de id's de cartas y datos de cartas, devuelve concatenados sus PV
+function getPVsDeCartas(array, cartas) {
+     var pvs = "";
+     for (var i = 0; i < array.length; ++i) { // Para cada carta, tenemos que obtener sus datos y enviarlos a la llamada
+          for (var j = 0; j < cartas.length; ++j) {
+               if (cartas[j].cartaID == Number(array[i])) {
+                    pvs += cartas[j].cartaPV;
+               }
+          }
+     }
+     return pvs;
 }
 
 //############################################################################################################################################################################################################################
-//#################################### MÉTODOS CALCULADORES ############################################################################################################################################################
+//#################################### MÉT-ODOS CALCULADORES ############################################################################################################################################################
 //############################################################################################################################################################################################################################
 
 function angular(angle) {
@@ -1022,10 +1093,6 @@ function tiendeAX(value, x, inc) {
      if (value < x) return Math.min(value+inc, x);
      else if (value > x) return Math.max(value-inc, x);
      else return value;
-}
-
-function isSeleccionada(carta) { // ¿Estás encima de la carta?
-     return mousex > carta.x+carta.xoffset && mousex < carta.x+carta.xoffset+carta.width && mousey > carta.y+carta.yoffset && mousey < carta.y+carta.yoffset+carta.height;
 }
 
 function inRange(val, x, y) { // ¿Está Val entre x e y?
@@ -1057,6 +1124,12 @@ function absAngleDifference(x, y) {
      return Math.abs(Math.atan2(Math.sin(a-b), Math.cos(a-b))*180/Math.PI);
 }
 
+function conCeros(i) {
+     if (i <= 9) return "00" + i;
+     else if (i <= 99) return "0" + i;
+     else return i;
+}
+
 //############################################################################################################################################################################################################################
 //#################################### LOS DATOS DE LAS CARTAS ###############################################################################################################################################################
 //############################################################################################################################################################################################################################
@@ -1070,62 +1143,12 @@ function getListaCartas(baraja, modo) {
      ];
      else if (baraja == "Saleh") arr = [
           "0021", "0022", "0023", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0031", "0032", "0033", "0034", "0035", "0036",
-          "0037", "0038", "0039", "0040", "0041", "0042", "0043", "0044", "0045", "0046", "0047", "0048", "0049", "0050", "0051", "0052"
+          "0037", "0038", "0039", "0040", "0041", "0042", "0043", "0044", "0045", "0046", "0047", "0048", "0049", "0050", "0051"
      ];
 
      if (modo == "junto") return arr.join('');
      else if (modo == "comas") return arr.join(',');
      else return arr;
-}
-
-// Devuelve los huecos iniciales de las cartas al crear y unirte a partida
-function getHuecosInicialesCartas(start) {
-     var huecos = "";
-     for (var i = start; i <= (start+nCartas/2); ++i) {
-          huecos += conCeros(i);
-     }
-     return huecos;
-}
-
-function conCeros(i) {
-     if (i <= 9) return "00" + i;
-     else if (i <= 99) return "0" + i;
-     else return i;
-}
-
-// Dado un array de id's de cartas y datos de cartas, devuelve concatenados sus PV
-function getPVsDeCartas(array, cartas) {
-     var pvs = "";
-     for (var i = 0; i < array.length; ++i) { // Para cada carta, tenemos que obtener sus datos y enviarlos a la llamada
-          for (var j = 0; j < cartas.length; ++j) {
-               if (cartas[j].cartaID == Number(array[i])) {
-                    pvs += cartas[j].cartaPV;
-               }
-          }
-     }
-     return pvs;
-}
-
-function modificaCarta(cid, pv, rango, clase, sprClase, sprEspecie, sprElemento) {
-     cartas[iAsignaCarta].cid = cid;
-     cartas[iAsignaCarta].rango = rango;
-     cartas[iAsignaCarta].pv = pv;
-     cartas[iAsignaCarta].pvmax = pv;
-     cartas[iAsignaCarta].clase = clase;
-     cartas[iAsignaCarta].sprClase = sprClase;
-     cartas[iAsignaCarta].sprEspecie = sprEspecie;
-     cartas[iAsignaCarta].sprElemento = sprElemento;
-
-     cartas[iAsignaCarta].huecoOcupado = iAsignaCarta;
-     var jj = cartas[iAsignaCarta].huecoOcupado;
-     if (jj >= 0) huecos[jj].icarta = iAsignaCarta;
-     if (iAsignaCarta == 0) {
-          cartas[iAsignaCarta].general = true;
-     }
-
-     // Esto sólo se hará UNA vez y para cargar tus cartas.
-
-     ++iAsignaCarta;
 }
 
 //#############################################################################################################################################################################################
@@ -1189,35 +1212,61 @@ function crearPartida(socket, cuenta, data) {
                     if (errSelectCrearPartida) throw errSelectCrearPartida;
 
                     if (resultSelectCrearPartida.length == 0) { // Si no existe la partida, la crea, y luego simplemente cargamos las cartas al tablero desde BD
-                         var arrayS = getListaCartas(data.barajaID, "comas"); // Obtenemos el array de id's de cartas, puede haber repeticiones
-                         con.query("select * from Cartas where cartaID in (" + arrayS + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
+                         con.query("select * from Cartas where cartaID in (" + getListaCartas(data.barajaID, "comas") + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
                               if (errSelectCrearPartida2) throw errSelectCrearPartida2;
-                              var array = getListaCartas(data.barajaID, ""); // Obtenemos el array de id's de cartas, puede haber repeticiones
-                              var pvs = getPVsDeCartas(array, resultSelectCrearPartida2);
-                              con.query("insert into Partidas (partidaID, partidaCreadorUsuarioID, partidaRivalUsuarioID, partidaCartasID, partidaCartasHueco, partidaCartasPV) values ('"
-                                   + data.partidaID + "', '" + cuenta.usuarioID + "', null, '" + getListaCartas(data.barajaID, "junto") + "', '" + getHuecosInicialesCartas(0)
-                                   + "', '" + pvs + "');", (errSelectCrearPartida3, r) => {
+                              var ids = getListaCartas(data.barajaID, "junto");
+                              var hcs = getHuecosInicialesCartas(0);
+                              var pvs = getPVsDeCartas(getListaCartas(data.barajaID, ""), resultSelectCrearPartida2);
+                              var angles = "";
+                              for (var i = 0; i < 31; ++i) {
+                                   angles += "090090";
+                                   pvs += "0";
+                                   hcs += "0-1";
+                                   ids += "00-1";
+                              }
+                              con.query("insert into Partidas (partidaID, partidaCreadorUsuarioID, partidaRivalUsuarioID, partidaCartasID, partidaCartasHueco, partidaCartasPV, partidaCartasAngle) values ('"
+                                   + data.partidaID + "', '" + cuenta.usuarioID + "', null, '" + ids + "', '" + hcs + "', '" + pvs + "', '" + angles + "');", (errSelectCrearPartida3, r) => {
                                    if (errSelectCrearPartida3) throw errSelectCrearPartida3;
-                                   cargarCartas(true, socket, data, pvs);
+                                   cargarCartas(socket, data, pvs, true, 0);
                               });
                          });
                     }
                     else { // Si ya ha sido creada...
                          // Si eres creador o rival, simplemente cargamos las cartas al tablero desde BD
                          if (resultSelectCrearPartida[0].partidaCreadorUsuarioID == cuenta.usuarioID || resultSelectCrearPartida[0].partidaRivalUsuarioID == cuenta.usuarioID) {
-                              cargarCartas(false, socket, data, resultSelectCrearPartida[0].cartaPV);
+                              // ESTO YA NO cargarCartas(socket, data, resultSelectCrearPartida[0].cartaPV, false, 31);
+                              socket.emit('partidaIniciada');
+
+                              for (var i = 0; i < nPartidas; ++i) {
+                                   if (partidas[i].partidaID == data.partidaID) {
+                                        if (partidas[i].usuarios[0].usuarioID == data.usuarioID) {
+                                             partidas[i].usuarios[0].cargaImagenesHuecos = 1;
+                                             partidas[i].usuarios[0].cargaImagenesCartas = 1;
+                                             partidas[i].usuarios[0].cargaImagenesMenus = 1;
+                                        }
+                                        else {
+                                             partidas[i].usuarios[1].cargaImagenesHuecos = 1;
+                                             partidas[i].usuarios[1].cargaImagenesCartas = 1;
+                                             partidas[i].usuarios[1].cargaImagenesMenus = 1;
+                                   }
+                                   }
+                              }
                          }
                          // Si hay hueco para rival y no eres creador, te unes a ella y asignas tu mazo...
                          else if (resultSelectCrearPartida[0].partidaCreadorUsuarioID != cuenta.usuarioID && resultSelectCrearPartida[0].partidaRivalUsuarioID == null) {
-                              var arrayS = getListaCartas(data.barajaID, "comas"); // Obtenemos el array de id's de cartas, puede haber repeticiones
-                              con.query("select * from Cartas where cartaID in (" + arrayS + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
+                              con.query("select * from Cartas where cartaID in (" + getListaCartas(data.barajaID, "comas") + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
                                    if (errSelectCrearPartida2) throw errSelectCrearPartida2;
-                                   var array = getListaCartas(data.barajaID, ""); // Obtenemos el array de id's de cartas, puede haber repeticiones
-                                   var pvs = getPVsDeCartas(array, resultSelectCrearPartida2);
-                                   con.query("update Partidas set partidaRivalUsuarioID = '" + cuenta.usuarioID + "', partidaCartasID = '" + getListaCartas(data.barajaID, "junto")
-                                   + "', partidaCartasHueco = '" + getHuecosInicialesCartas(nCartas/2) + "', partidaCartasPV = '" + pvs + "' where partidaID = '" + data.partidaID + "';", (errSelectCrearPartida3, r) => {
+                                   var ids = resultSelectCrearPartida[0].partidaCartasID.substring(0, 31*4) + getListaCartas(data.barajaID, "junto");
+                                   var hcs = resultSelectCrearPartida[0].partidaCartasHueco.substring(0, 31*3) + getHuecosInicialesCartas(nCartas/2);
+                                   var pvs = resultSelectCrearPartida[0].partidaCartasPV.substring(0, 31*1) + getPVsDeCartas(getListaCartas(data.barajaID, ""), resultSelectCrearPartida2);
+                                   var angles = resultSelectCrearPartida[0].partidaCartasAngle.substring(0, 31*3);
+                                   for (var i = 0; i < 31; ++i) {
+                                        angles += "090";
+                                   }
+                                   con.query("update Partidas set partidaRivalUsuarioID = '" + cuenta.usuarioID + "', partidaCartasID = '" + ids + "', partidaCartasHueco = '"
+                                   + hcs + "', partidaCartasPV = '" + pvs + "', partidaCartasAngle = '" + angles + "' where partidaID = '" + data.partidaID + "';", (errSelectCrearPartida3, r) => {
                                         if (errSelectCrearPartida3) throw errSelectCrearPartida3;
-                                        cargarCartas(false, socket, data, pvs);
+                                        cargarCartas(socket, data, pvs, false, 31);
                                    });
                               });
                          }
@@ -1236,7 +1285,7 @@ function crearPartida(socket, cuenta, data) {
 }
 
 // Cargamos las cartas de base de datos al campo. Ocurre tanto al crearlo como en cada cargada
-function cargarCartas(crea, socket, data, pvs) {
+function cargarCartas(socket, data, pvs, crea, iStart) {
      pool.getConnection((errCargarCartas, con) => {
           if (errCargarCartas) throw errCargarCartas;
           var arrayS = getListaCartas(data.barajaID, "comas"); // Obtenemos el array de id's de cartas, puede haber repeticiones
@@ -1246,14 +1295,38 @@ function cargarCartas(crea, socket, data, pvs) {
                iAsignaCarta = 0;
                var array = getListaCartas(data.barajaID, ""); // Obtenemos el array de id's de cartas, puede haber repeticiones
 
-               // TODO iAsignaCarta setearlo a 0 o a 31 para comenzar a contar en el lado bueno del array segun si... lo que sea. No almacenarla.
+               nuevaPartida(data, crea);
+               socket.emit('partidaIniciada');
+
+               // Aquí la partida ya existe o ha sido creada. La buscamos y le asignamos "cargaImagenes" a true para que en su primer ciclo cargue t-odo.
+               var iPartida = -1;
+               for (var i = 0; i < nPartidas; ++i) {
+                    if (partidas[i].partidaID == data.partidaID) {
+                         iPartida = i;
+                         partidas[i].usuarios[0].cargaImagenesHuecos = 1;
+                         partidas[i].usuarios[0].cargaImagenesCartas = 1;
+                         partidas[i].usuarios[0].cargaImagenesMenus = 1;
+                         partidas[i].usuarios[1].cargaImagenesHuecos = 1;
+                         partidas[i].usuarios[1].cargaImagenesCartas = 1;
+                         partidas[i].usuarios[1].cargaImagenesMenus = 1;
+                    }
+               }
+
+               iAsignaCarta = iStart;
+
+               // Asigna a todas las cartas de qué lado son cada usuario
+               var ind = 0;
+               if (partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != "" && partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != data.usuarioID) ind = 1;
+               for (var i = 0; i < nCartas; ++i) {
+                    partidas[iPartida].cartas[i].cartaUsuario[ind].usuarioID = data.usuarioID;
+               }
 
                for (var i = 0; i < array.length; ++i) {
                     // En base a un bucle de la lista (cartas repetidas) obtenemos los datos de la query 3 (sin repetir)
                     // Dado el cartaID del array, debemos buscar coincidencia en result2 y pasar esos datos
                     for (var j = 0; j < resultSelectCrearPartida2.length; ++j) {
                          if (Number(array[i]) == resultSelectCrearPartida2[j].cartaID) {
-                              modificaCarta(
+                              modificaCarta(partidas[iPartida],
                                    Number(array[i]), pvs.substring(i, i+1), resultSelectCrearPartida2[j].cartaRango,
                                    resultSelectCrearPartida2[j].cartaClase, 'sprClase' + resultSelectCrearPartida2[j].cartaClase,
                                    'sprEspecie' + resultSelectCrearPartida2[j].cartaEspecie, 'sprElemento' + resultSelectCrearPartida2[j].cartaElemento
@@ -1263,17 +1336,31 @@ function cargarCartas(crea, socket, data, pvs) {
                     }
                }
 
-               if (crea) nuevaPartida(data);
-               // Aquí la partida ya existe o ha sido creada. La buscamos y le asignamos "cargaImagenes" a true para que en su primer ciclo cargue todo.
-               for (var i = 0; i < nPartidas; ++i) {
-                    if (partidas[i].partidaID == data.partidaID) {
-                         if (partidas[i].usuarios[0].usuarioID == data.usuarioID) partidas[i].usuarios[0].cargaImagenes = true;
-                         else if (partidas[i].usuarios[1].usuarioID == data.usuarioID) partidas[i].usuarios[1].cargaImagenes = true;
-                    }
+               // Nos asignamos los huecos
+               for (var j = 0; j < nHuecos; ++j) {
+                    partidas[iPartida].huecos[j].huecoUsuario[ind].usuarioID = data.usuarioID;
                }
-               socket.emit('partidaCreada');
           });
      });
+}
+
+// Esto se ejecuta UNA SOLA VEZ, una por creador y otra por rival, para cargar las cartas
+function modificaCarta(partida, cid, pv, rango, clase, sprClase, sprEspecie, sprElemento) {
+     partida.cartas[iAsignaCarta].cid = cid;
+     partida.cartas[iAsignaCarta].rango = rango;
+     partida.cartas[iAsignaCarta].pv = pv;
+     partida.cartas[iAsignaCarta].pvmax = pv;
+     partida.cartas[iAsignaCarta].clase = clase;
+     partida.cartas[iAsignaCarta].sprClase = sprClase;
+     partida.cartas[iAsignaCarta].sprEspecie = sprEspecie;
+     partida.cartas[iAsignaCarta].sprElemento = sprElemento;
+     partida.cartas[iAsignaCarta].general = iAsignaCarta == 0 || iAsignaCarta == 31;
+
+     var iHueco = iAsignaCarta;
+     if (iHueco >= 31) iHueco -= 31;
+     partida.cartas[iAsignaCarta].huecoOcupado = iHueco;
+
+     ++iAsignaCarta;
 }
 
 // En base al usuario y partida leídos realiza acciones asíncronas
@@ -1321,81 +1408,10 @@ function setMouseRelease(socket, partida, usuario, data) {
 function setMouseMove(socket, partida, usuario, data) {
      usuario.mousex = data.mousex;
      usuario.mousey = data.mousey;
-     usuario.xCampo = data.xCampo;
+
+     // Desplazar el campo
+	usuario.xCampo = Math.min(Math.max(-data.mousex*1.105, -1000), -20);
 }
 
-// Obtén todas las variables de las estructuras para usarlas en local para ESTE usuario
-function getAllVariables(socket, partida, usuario, data) {
-     // Funcionamiento básico de los usuarios y la partida
-     mousex = usuario.mousex;
-     mousey = usuario.mousey;
-     mousePress = usuario.mousePress;
-     mouseRelease = usuario.mouseRelease;
-     xCampo = Math.min(Math.max(-mousex*1.105, -1000), -20);
-     generalColocado = usuario.generalColocado;
-     nComenzado = usuario.nComenzado;
-     comenzado = usuario.comenzado;
-     candado = usuario.candado;
-     umbralTrigger = usuario.umbralTrigger;
-     trigger = usuario.trigger;
-     triggerGenerado = usuario.triggerGenerado;
-     swapLimbo = usuario.swapLimbo;
-     swapeando = usuario.swapeando;
-     claseSeleccionada = usuario.claseSeleccionada;
-     nEjercitoRival = usuario.nEjercitoRival;
-     // Menú
-     spMenuA = usuario.spMenuA;
-     isMenu = usuario.isMenu;
-     imenu = usuario.imenu;
-     imenuDraw = usuario.imenuDraw;
-     menuSeleccionado = usuario.menuSeleccionado;
-     menuScale = usuario.menuScale;
-     // Las cartas
-     cartas = partida.cartas;
-     cartaDrawID = usuario.cartaDrawID;
-     // Los huecos
-     huecos = partida.huecos;
-     sprLimboBoton = usuario.sprLimboBoton;
-     // Extra
-     cargaImagenes = usuario.cargaImagenes;
-}
-
-// Setea todas las variables locales a las estructuras para poderlas acceder entre instantes de turno. SIEMPRE deben almacenarse en la estructura de usuarios,
-// Pues en cada step es la estructura que va a leerse para cargar cada turno. Así que lo guardamos ahí, y de ahí a base de datos en un paso posterior
-// Notar que no todo debe guardarse en base de datos. Cosas como el estado del ratón se guarda en usuario para llevar la cuenta pero NO en base de datos.
-function setAllVariables(socket, partida, usuario, data) {
-     // Funcionamiento básico de los usuarios y la partida
-     usuario.mousex = mousex;
-     usuario.mousey = mousey;
-     usuario.mousePress = mousePress;
-     usuario.mouseRelease = mouseRelease;
-     usuario.generalColocado = generalColocado; // Persistente
-     usuario.nComenzado = nComenzado; // Persistente
-     usuario.comenzado = comenzado; // Persistente
-     usuario.candado = candado;
-     usuario.umbralTrigger = umbralTrigger; // Persistente
-     usuario.trigger = trigger; // Persistente
-     usuario.triggerGenerado = triggerGenerado; // Persistente
-     usuario.swapLimbo = swapLimbo;
-     usuario.swapeando = swapeando;
-     usuario.claseSeleccionada = claseSeleccionada;
-     usuario.nEjercitoRival = nEjercitoRival; // Persistente
-     // Menú
-     usuario.spMenuA = spMenuA;
-     usuario.isMenu = isMenu;
-     usuario.imenu = imenu;
-     usuario.imenuDraw = imenuDraw;
-     usuario.menuSeleccionado = menuSeleccionado;
-     usuario.menuScale = menuScale;
-     // Las cartas
-     partida.cartas = cartas; // Persistente
-     usuario.cartaDrawID = cartaDrawID;
-     // Los huecos
-     partida.huecos = huecos; // Persistente
-     usuario.sprLimboBoton = sprLimboBoton;
-     // Extra
-     usuario.cargaImagenes = cargaImagenes; // Persistente
-}
-
-// TODO hacer método para almacenar de la estructura partidas y usuarios hacia base de datos, y otro para traerlas de vuelta.
+// TODO hacer mét-odo para almacenar de la estructura partidas y usuarios hacia base de datos, y otro para traerlas de vuelta.
 // La primera se ejecutaría cada X segundos y/o al realizar ciertas acciones, la segunda se haría cada vez que el server inicia.
