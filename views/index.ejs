@@ -8,22 +8,33 @@
           <title>Devil Card Trigger Game</title>
      </head>
 
-     <body style="background-color:#000000; overflow:hidden; margin:0px;">
+     <body style="background-color:#000000; overflow:hidden; margin:0px; color:#FF0000;">
           <div id="pantalla">
-               <center><div id="iniciarSesion" style="color:#FFF">
-                    <table><tr><td><center>Usuario</center></td><td><center>Contraseña</center></td></tr>
-                    <tr><td><input id="inpUsuario" type="text" /></td><td><input id="inpContrasena" type="text" /></td></tr></table>
-                    <br><button id="btnIniciarSesion" type="button">Entrar</button><br><br>
-                    Si el Usuario ya existe, inicia sesión. Si no, lo crea con la nueva contraseña.
-                    <p id="msgNoIniciaSesion" style="visibility:hidden;">Contraseña incorrecta para este usuario.</p>
-                    <p id="msgRegistraUsuario" style="visibility:hidden;">Has registrado el usuario. Vuelve a presionar para iniciar sesión.</p>
-               </div></center>
                <p><canvas id="canvas" width="1280" height="720">
                     Tu navegador no soporta el canvas, actualízalo o prueba otro. ¡Gracias! (>uo)7
                </canvas></p>
+
+               <center><div id="divIniciarSesion" style="width:400px; color:#FF0000; background-color:#000000; box-shadow: 0px 0px 100px 100px #000000;">
+                    <table><tr><td><center>Usuario</center></td><td><center>Contraseña</center></td></tr>
+                    <tr><td><input id="inpUsuario" type="text" /></td><td><input id="inpContrasena" type="text" /></td></tr></table>
+                    <button id="btnIniciarSesion" type="button">Entrar</button><br><br>
+
+                    <div id="divMenuUsuario" style="visibility:hidden;">
+                         <br>Baraja seleccionada<br>
+                         <select id="selectBaraja" name="selectBaraja">
+                            <option value="Raziel">Raziel (Espectros&Artificiales Tóxico&Nulo)</option>
+                            <option value="Saleh">Saleh (Insectos&Humanos Fuego&Eléctrico)</option>
+                         </select>
+                         <br><br>Partida<br><input id="inpCrearPartida" type="text" /><br><button id="btnCrearPartida" type="button">Jugar</button>
+                         <br><br>Partidas en curso
+                         <br><section id="sectionPartidas" style="height:100px; overflow-y:scroll;"></section>
+                    </div>
+               </div></center>
           </div>
 
           <script src="https://code.jquery.com/jquery-latest.min.js"></script>
           <script src="client.js"></script>
      </body>
 </html>
+
+<style>input, select, button {background-color:#000; color:#FFF;}</style>
