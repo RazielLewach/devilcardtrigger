@@ -104,7 +104,7 @@ var spFondoSep = new Image(); spFondoSep.src = 'https://i.imgur.com/hdv4qw7.png'
 var spFondoDerecha = new Image(); spFondoDerecha.src = 'https://i.imgur.com/RedxK2H.png'; // Fondo a la derecha ajeno al campo
 var spFondoDerechaMitad = new Image(); spFondoDerechaMitad.src = 'https://i.imgur.com/mCeAZfh.png'; // Fondo a la derecha mitad ajeno al campo
 
-var sprCartaVacia = 'https://i.imgur.com/93v2Y4e.png'; // Carta base vacía transparente GRANDE
+var spCartaVacia = new Image(); spCartaVacia.src = 'https://i.imgur.com/93v2Y4e.png'; // Carta base vacía transparente GRANDE
 var sprCartaHueco = 'https://i.imgur.com/MXxqIae.png'; // Hueco para carta que rota
 var sprCartaHuecoVerde = 'https://i.imgur.com/JIastGm.png'; // Hueco para carta que rota Verde
 var sprCartaHuecoRojo = 'https://i.imgur.com/FWVHf9d.png'; // Hueco para carta que rota
@@ -112,7 +112,6 @@ var sprCartaHuecoVert = 'https://i.imgur.com/mErTBiz.png'; // Hueco para carta v
 var sprCartaSeleccionada = 'https://i.imgur.com/yMkxspa.png'; // Hueco seleccionada
 var sprCartaGeneral = 'https://i.imgur.com/EpVHXr4.png'; // Único General
 var sprCartaPruebas = 'https://i.imgur.com/0WY1mVR.png'; // Carta de pruebas
-var spCartaDraw = new Image(); spCartaDraw.src = sprCartaVacia; // Fondo de la carta sin nada
 var spCartaSeleccionada = new Image(); spCartaSeleccionada.src = sprCartaSeleccionada; // Carta seleccionada
 var spCartaGeneral = new Image(); spCartaGeneral.src = sprCartaGeneral; // Único General
 
@@ -172,16 +171,15 @@ var sprElementoE = 'https://i.imgur.com/BY6oQ56.png'; // Elemento Eléctrico
 var sprElementoT = 'https://i.imgur.com/s7pYes5.png'; // Elemento Tóxico
 var sprElementoN = 'https://i.imgur.com/rki0Ld6.png'; // Elemento Nulo
 
-var sprLimboBotonOff = 'https://i.imgur.com/2c14oQE.png'; // Botón para swapear Limbo Off
-var sprLimboBotonOn = 'https://i.imgur.com/RK9BdUe.png'; // Botón para swapear Limbo On
-var sprLimboBotonOffS = 'https://i.imgur.com/mNNl8F0.png'; // Botón para swapear Limbo Off Selected
-var sprLimboBotonOnS = 'https://i.imgur.com/TxPT4FD.png'; // Botón para swapear Limbo On Selected
-var spLimboBoton = new Image(); spLimboBoton.src = sprLimboBotonOn;
+var spLimboBotonOff = new Image(); spLimboBotonOff.src = 'https://i.imgur.com/2c14oQE.png'; // Botón para swapear Limbo Off
+var spLimboBotonOn = new Image(); spLimboBotonOn.src = 'https://i.imgur.com/RK9BdUe.png'; // Botón para swapear Limbo On
+var spLimboBotonOffS = new Image(); spLimboBotonOffS.src = 'https://i.imgur.com/mNNl8F0.png'; // Botón para swapear Limbo Off Selected
+var spLimboBotonOnS = new Image(); spLimboBotonOnS.src ='https://i.imgur.com/TxPT4FD.png'; // Botón para swapear Limbo On Selected
 
 var sprMenuA = 'https://i.imgur.com/OYoj8tT.png'; // Menu interno
 var sprMenuAS = 'https://i.imgur.com/yQwGf9t.png'; // Menu interno selected
 
-var sprTraseroDMC1 = 'https://i.imgur.com/NzlCNel.png'; // Trasero de DMC1
+var spTraseroDMC1 = new Image(); spTraseroDMC1.src = 'https://i.imgur.com/NzlCNel.png'; // Trasero de DMC1
 
 var spMenuPVL = new Image(); spMenuPVL.src = 'https://i.imgur.com/ko2ZJjO.png'; // PV -
 var spMenuPVM = new Image(); spMenuPVM.src = 'https://i.imgur.com/CXNPTU7.png'; // PV +
@@ -192,59 +190,59 @@ var spMenuV = new Image(); spMenuV.src = 'https://i.imgur.com/ifAiKjU.png'; // V
 
 var spCarta = new Array();
 
-var aux1 = 'https://i.imgur.com/041PRtj.png'; spCarta.push(aux1);
-var aux2 = 'https://i.imgur.com/B2xhKWU.png'; spCarta.push(aux2);
-var aux3 = 'https://i.imgur.com/NxPM7Ge.png'; spCarta.push(aux3);
-var aux4 = 'https://i.imgur.com/UngHMSr.png'; spCarta.push(aux4);
-var aux5 = 'https://i.imgur.com/IjHqkUI.png'; spCarta.push(aux5);
-var aux6 = 'https://i.imgur.com/ExvjVEH.png'; spCarta.push(aux6);
-var aux7 = 'https://i.imgur.com/rUmbp8D.png'; spCarta.push(aux7);
-var aux8 = 'https://i.imgur.com/F0PbGhO.png'; spCarta.push(aux8);
-var aux9 = 'https://i.imgur.com/CTJt2Sn.png'; spCarta.push(aux9);
-var aux10 = 'https://i.imgur.com/nlqBm3T.png'; spCarta.push(aux10);
-var aux11 = 'https://i.imgur.com/wsXi1ik.png'; spCarta.push(aux11);
-var aux12 = 'https://i.imgur.com/pYQWeTV.png'; spCarta.push(aux12);
-var aux13 = 'https://i.imgur.com/yhrcl8s.png'; spCarta.push(aux13);
-var aux14 = 'https://i.imgur.com/wAy23v4.png'; spCarta.push(aux14);
-var aux15 = 'https://i.imgur.com/kpPNCkx.png'; spCarta.push(aux15);
-var aux16 = 'https://i.imgur.com/eVJCVQU.png'; spCarta.push(aux16);
-var aux17 = 'https://i.imgur.com/4W1QPup.png'; spCarta.push(aux17);
-var aux18 = 'https://i.imgur.com/ycWgPmy.png'; spCarta.push(aux18);
-var aux19 = 'https://i.imgur.com/5Gjih8z.png'; spCarta.push(aux19);
-var aux20 = 'https://i.imgur.com/7wmw3Mh.png'; spCarta.push(aux20);
-var aux21 = 'https://i.imgur.com/aXyQ1jg.png'; spCarta.push(aux21);
+var aux0 = 'https://i.imgur.com/041PRtj.png'; spCarta.push(aux0);
+var aux1 = 'https://i.imgur.com/B2xhKWU.png'; spCarta.push(aux1);
+var aux2 = 'https://i.imgur.com/NxPM7Ge.png'; spCarta.push(aux2);
+var aux3 = 'https://i.imgur.com/UngHMSr.png'; spCarta.push(aux3);
+var aux4 = 'https://i.imgur.com/IjHqkUI.png'; spCarta.push(aux4);
+var aux5 = 'https://i.imgur.com/ExvjVEH.png'; spCarta.push(aux5);
+var aux6 = 'https://i.imgur.com/rUmbp8D.png'; spCarta.push(aux6);
+var aux7 = 'https://i.imgur.com/F0PbGhO.png'; spCarta.push(aux7);
+var aux8 = 'https://i.imgur.com/CTJt2Sn.png'; spCarta.push(aux8);
+var aux9 = 'https://i.imgur.com/nlqBm3T.png'; spCarta.push(aux9);
+var aux10 = 'https://i.imgur.com/wsXi1ik.png'; spCarta.push(aux10);
+var aux11 = 'https://i.imgur.com/pYQWeTV.png'; spCarta.push(aux11);
+var aux12 = 'https://i.imgur.com/yhrcl8s.png'; spCarta.push(aux12);
+var aux13 = 'https://i.imgur.com/wAy23v4.png'; spCarta.push(aux13);
+var aux14 = 'https://i.imgur.com/kpPNCkx.png'; spCarta.push(aux14);
+var aux15 = 'https://i.imgur.com/eVJCVQU.png'; spCarta.push(aux15);
+var aux16 = 'https://i.imgur.com/4W1QPup.png'; spCarta.push(aux16);
+var aux17 = 'https://i.imgur.com/ycWgPmy.png'; spCarta.push(aux17);
+var aux18 = 'https://i.imgur.com/5Gjih8z.png'; spCarta.push(aux18);
+var aux19 = 'https://i.imgur.com/7wmw3Mh.png'; spCarta.push(aux19);
+var aux20 = 'https://i.imgur.com/aXyQ1jg.png'; spCarta.push(aux20);
 
-var aux22 = 'https://i.imgur.com/em4NjRe.png'; spCarta.push(aux22);
-var aux23 = 'https://i.imgur.com/Y17XG1h.png'; spCarta.push(aux23);
-var aux24 = 'https://i.imgur.com/eM9HEOu.png'; spCarta.push(aux24);
-var aux25 = 'https://i.imgur.com/gm36IEV.png'; spCarta.push(aux25);
-var aux26 = 'https://i.imgur.com/02BZ1GQ.png'; spCarta.push(aux26);
-var aux27 = 'https://i.imgur.com/D2HauUW.png'; spCarta.push(aux27);
-var aux28 = 'https://i.imgur.com/kcNzQsZ.png'; spCarta.push(aux28);
-var aux29 = 'https://i.imgur.com/qXJH68a.png'; spCarta.push(aux29);
-var aux30 = 'https://i.imgur.com/GaVHi6p.png'; spCarta.push(aux30);
-var aux31 = 'https://i.imgur.com/k4XH4v0.png'; spCarta.push(aux31);
-var aux32 = 'https://i.imgur.com/Y5zCfqS.png'; spCarta.push(aux32);
-var aux33 = 'https://i.imgur.com/bqEQtKS.png'; spCarta.push(aux33);
-var aux34 = 'https://i.imgur.com/vFSLF1I.png'; spCarta.push(aux34);
-var aux35 = 'https://i.imgur.com/jbWtdbh.png'; spCarta.push(aux35);
-var aux36 = 'https://i.imgur.com/jYSjQy0.png'; spCarta.push(aux36);
-var aux37 = 'https://i.imgur.com/ai4uNS8.png'; spCarta.push(aux37);
-var aux38 = 'https://i.imgur.com/LWr2cnj.png'; spCarta.push(aux38);
-var aux39 = 'https://i.imgur.com/fGqt36Z.png'; spCarta.push(aux39);
-var aux40 = 'https://i.imgur.com/9J1alw3.png'; spCarta.push(aux40);
-var aux41 = 'https://i.imgur.com/I6kpm9Q.png'; spCarta.push(aux41);
-var aux42 = 'https://i.imgur.com/j8OfGd8.png'; spCarta.push(aux42);
-var aux43 = 'https://i.imgur.com/6gB7Wdc.png'; spCarta.push(aux43);
-var aux44 = 'https://i.imgur.com/a7HvvDr.png'; spCarta.push(aux44);
-var aux45 = 'https://i.imgur.com/SapZzOj.png'; spCarta.push(aux45);
-var aux46 = 'https://i.imgur.com/ijECbX5.png'; spCarta.push(aux46);
-var aux47 = 'https://i.imgur.com/vygJ2xR.png'; spCarta.push(aux47);
-var aux48 = 'https://i.imgur.com/aAaoqES.png'; spCarta.push(aux48);
-var aux49 = 'https://i.imgur.com/NCIdZKi.png'; spCarta.push(aux49);
-var aux50 = 'https://i.imgur.com/288V28H.png'; spCarta.push(aux50);
-var aux51 = 'https://i.imgur.com/LUVVak6.png'; spCarta.push(aux51);
-var aux52 = 'https://i.imgur.com/uGPVJwz.png'; spCarta.push(aux52);
+var aux21 = 'https://i.imgur.com/em4NjRe.png'; spCarta.push(aux21);
+var aux22 = 'https://i.imgur.com/Y17XG1h.png'; spCarta.push(aux22);
+var aux23 = 'https://i.imgur.com/eM9HEOu.png'; spCarta.push(aux23);
+var aux24 = 'https://i.imgur.com/gm36IEV.png'; spCarta.push(aux24);
+var aux25 = 'https://i.imgur.com/02BZ1GQ.png'; spCarta.push(aux25);
+var aux26 = 'https://i.imgur.com/D2HauUW.png'; spCarta.push(aux26);
+var aux27 = 'https://i.imgur.com/kcNzQsZ.png'; spCarta.push(aux27);
+var aux28 = 'https://i.imgur.com/qXJH68a.png'; spCarta.push(aux28);
+var aux29 = 'https://i.imgur.com/GaVHi6p.png'; spCarta.push(aux29);
+var aux30 = 'https://i.imgur.com/k4XH4v0.png'; spCarta.push(aux30);
+var aux31 = 'https://i.imgur.com/Y5zCfqS.png'; spCarta.push(aux31);
+var aux32 = 'https://i.imgur.com/bqEQtKS.png'; spCarta.push(aux32);
+var aux33 = 'https://i.imgur.com/vFSLF1I.png'; spCarta.push(aux33);
+var aux34 = 'https://i.imgur.com/jbWtdbh.png'; spCarta.push(aux34);
+var aux35 = 'https://i.imgur.com/jYSjQy0.png'; spCarta.push(aux35);
+var aux36 = 'https://i.imgur.com/ai4uNS8.png'; spCarta.push(aux36);
+var aux37 = 'https://i.imgur.com/LWr2cnj.png'; spCarta.push(aux37);
+var aux38 = 'https://i.imgur.com/fGqt36Z.png'; spCarta.push(aux38);
+var aux39 = 'https://i.imgur.com/9J1alw3.png'; spCarta.push(aux39);
+var aux40 = 'https://i.imgur.com/I6kpm9Q.png'; spCarta.push(aux40);
+var aux41 = 'https://i.imgur.com/j8OfGd8.png'; spCarta.push(aux41);
+var aux42 = 'https://i.imgur.com/6gB7Wdc.png'; spCarta.push(aux42);
+var aux43 = 'https://i.imgur.com/a7HvvDr.png'; spCarta.push(aux43);
+var aux44 = 'https://i.imgur.com/SapZzOj.png'; spCarta.push(aux44);
+var aux45 = 'https://i.imgur.com/ijECbX5.png'; spCarta.push(aux45);
+var aux46 = 'https://i.imgur.com/vygJ2xR.png'; spCarta.push(aux46);
+var aux47 = 'https://i.imgur.com/aAaoqES.png'; spCarta.push(aux47);
+var aux48 = 'https://i.imgur.com/NCIdZKi.png'; spCarta.push(aux48);
+var aux49 = 'https://i.imgur.com/288V28H.png'; spCarta.push(aux49);
+var aux50 = 'https://i.imgur.com/LUVVak6.png'; spCarta.push(aux50);
+var aux51 = 'https://i.imgur.com/uGPVJwz.png'; spCarta.push(aux51);
 
 $(function(){
      //#############################################################################################################################################################################################
@@ -298,7 +296,7 @@ $(function(){
           mousey = e.y/res;
 	};
 
-	// Si modificamos el usuario o la contraseña todo el progreso se revierte
+	// Si modificamos el usuario o la contraseña t-odo el progreso se revierte
 	inpUsuario.on('input', function (e) {
 		divMenuUsuario.style = "visibility:hidden;";
 	});
@@ -328,7 +326,7 @@ $(function(){
 		partidaID = inpCrearPartida.val();
 	});
 
-	socket.on('partidaCreada', (data) => {
+	socket.on('partidaIniciada', (data) => {
 		loginScreen = false;
 		divIniciarSesion.style.display = "none";
 	});
@@ -520,17 +518,19 @@ $(function(){
 
           // Los huecos
 	     for (var j = 0; j < nHuecos; ++j) {
-	          setAlphaParte(data.hue[j].y, mousey);
+			var huecoUsuario = getHuecoUsuario(data.hue[j], data.usuarioID);
+	          setAlphaParte(huecoUsuario.y, mousey);
 
                var image = huecosDraw[j];
 
-	          ctx.drawImage(image, data.hue[j].x*res, data.hue[j].y*res, data.hue[j].width*res, data.hue[j].height*res);
-	          //ctx.fillText(j, huecos[j].x, huecos[j].y);
+	          ctx.drawImage(image, huecoUsuario.x*res, huecoUsuario.y*res, data.hue[j].width*res, data.hue[j].height*res);
+	          //ctx.fillText("j:" + j, huecoUsuario.x*res, huecoUsuario.y*res);
+	          //ctx.fillText("x:" + Math.round(huecoUsuario.x) + ", y:" + Math.round(huecoUsuario.y), huecoUsuario.x*res + 20, huecoUsuario.y*res);
 
                var tc = 0;
                if (!data.hue[j].ocupado && !data.hue[j].vert && miCampo(j)) {
                	ctx.drawImage(spHuecoTrigger[tc], (
-					data.hue[j].x + 45 - data.huecoTriggerSize/2)*res, (data.hue[j].y + 45 - data.huecoTriggerSize/2)*res,
+					huecoUsuario.x + 45 - data.huecoTriggerSize/2)*res, (huecoUsuario.y + 45 - data.huecoTriggerSize/2)*res,
 					data.huecoTriggerSize*res, data.huecoTriggerSize*res);
 	               ++tc;
 	               if (tc == 6) tc = 0;
@@ -551,61 +551,65 @@ $(function(){
 	}
 
 	function drawSwapLimbo(data) {
-		var bot = new Image();
-		if (data.sprLimboBoton != "") bot.src = window[data.sprLimboBoton];
-	     ctx.drawImage(bot, (1164+data.xCampo)*res, 517*res, 25*res, 75*res);
+		var img = new Image();
+		if (data.sprLimboBoton == "sprLimboBotonOn") img = spLimboBotonOn;
+		else if (data.sprLimboBoton == "sprLimboBotonOff") img = spLimboBotonOff;
+		else if (data.sprLimboBoton == "sprLimboBotonOnS") img = spLimboBotonOnS;
+		else img = spLimboBotonOffS;
+	     ctx.drawImage(img, (1164+data.xCampo)*res, 517*res, 25*res, 75*res);
 	}
 
      function drawCartas(data) {
 	     for (var i = 0; i < nCartas; ++i) {
 	          if (data.car[i].huecoOcupado >= 0) {
+				var cartaUsuario = getCartaUsuario(data.car[i], data.usuarioID);
 	               // Dibujar la miniatura de la carta o el trasero si está boca abajo
 	               var dib = new Image();
 
 	               // Vemos si está volteada la carta del deck
-                    if (data.car[i].volteada) dib.src = sprTraseroDMC1;
-				else dib.src = cartasDraw[i].src;
+                    if (data.car[i].volteada) dib = spTraseroDMC1;
+				else dib = cartasDraw[i];
 
 	               // Los offsets
-	               var xo = data.car[i].x;
-	               var yo = data.car[i].y;
+	               var xo = cartaUsuario.x;
+	               var yo = cartaUsuario.y;
 	               var xf = offset*(!data.hue[data.car[i].huecoOcupado].vert);
 	               var yf = 0;
 
-	               setAlphaParte(data.car[i].y, mousey);
+	               setAlphaParte(cartaUsuario.y, mousey);
 
 	               // Dibuja la carta
-	               drawImageRotateTwo(dib, spSinPV, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	               drawImageRotateTwo(dib, spSinPV, getAnglePorLado(data, i, 90), xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 
                     // Los iconos de la carta
                     var cla = claseDraw[i];
                     var esp = especieDraw[i];
                     var ele = elementoDraw[i];
-                    ctx.drawImage(cla, (data.car[i].x+xf+5+15)*res, (data.car[i].y+5)*res, 25*res, 25*res);
-                    ctx.drawImage(esp, (data.car[i].x+xf+5)*res, (data.car[i].y+5+30)*res, 25*res, 25*res);
-                    ctx.drawImage(ele, (data.car[i].x+xf+5+30)*res, (data.car[i].y+5+30)*res, 25*res, 25*res);
+                    ctx.drawImage(cla, (cartaUsuario.x+xf+5+15)*res, (cartaUsuario.y+5)*res, 25*res, 25*res);
+                    ctx.drawImage(esp, (cartaUsuario.x+xf+5)*res, (cartaUsuario.y+5+30)*res, 25*res, 25*res);
+                    ctx.drawImage(ele, (cartaUsuario.x+xf+5+30)*res, (cartaUsuario.y+5+30)*res, 25*res, 25*res);
 
 	               // Carta seleccionada...
-	               if (data.car[i].seleccionada) {
+	               if (cartaUsuario.seleccionada) {
 	                    // ... Dibuja el marco rojo de seleccionada
-	                    drawImageRotate(spCartaSeleccionada, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	                    drawImageRotate(spCartaSeleccionada, getAnglePorLado(data, i, 90), xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 
 	                    // Dibuja el número si está en el Ejército, para saber cuál robas
 	                    if (data.car[i].huecoOcupado < 31) {
 	                         ctx.fillStyle="rgba(0, 0, 0, 0.8)";
-	                         ctx.fillRect((data.car[i].x+2)*res, (data.car[i].y+2)*res, (cartaWidth-4)*res, (cartaHeight-4)*res);
+	                         ctx.fillRect((cartaUsuario.x+2)*res, (cartaUsuario.y+2)*res, (cartaWidth-4)*res, (cartaHeight-4)*res);
 
 	                         ctx.font = 50*res + "px Georgia";
 	                         ctx.fillStyle = "white";
 	                         ctx.textAlign="center";
-	                         ctx.fillText(data.car[i].huecoOcupado, (data.car[i].x+cartaWidth/2)*res, (data.car[i].y+60)*res);
+	                         ctx.fillText(data.car[i].huecoOcupado, (cartaUsuario.x+cartaWidth/2)*res, (cartaUsuario.y+60)*res);
 	                         ctx.textAlign="left";
 	                    }
 	               }
 
 	               // Dibuja el marco amarillo del General
 	               if (data.car[i].general) {
-	                    drawImageRotate(spCartaGeneral, data.car[i].angleDraw-90, xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
+	                    drawImageRotate(spCartaGeneral, getAnglePorLado(data, i, 90), xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
 	               }
 
 	               resetAlphaParte();
@@ -620,9 +624,12 @@ $(function(){
 
 	function drawCampoComeback(data) { // Muestra el lado derecho del campo
 	     // Los PV de la carta pequeña
+		var spCartaDraw = spCartaVacia;
+
 	     for (var i = 0; i < nCartas; ++i) {
 	          if (data.car[i].huecoOcupado >= 0) {
-	               setAlphaParte(data.car[i].y, mousey);
+				var cartaUsuario = getCartaUsuario(data.car[i], data.usuarioID);
+	               setAlphaParte(cartaUsuario.y, mousey);
 
 	               // Los offsets
 	               var xf = offset*(!data.hue[data.car[i].huecoOcupado].vert);
@@ -630,12 +637,17 @@ $(function(){
 
 	               if (!data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
 	                    if (j < data.car[i].pv) {
-	                         ctx.drawImage(spPV, (data.car[i].x+cartaWidth-16 - j*8+xf)*res, (data.car[i].y+cartaHeight-12+yf)*res);
+	                         ctx.drawImage(spPV, (cartaUsuario.x+cartaWidth-16 - j*8+xf)*res, (cartaUsuario.y+cartaHeight-12+yf)*res);
 	                    }
 	                    else {
-	                         ctx.drawImage(spPVB, (data.car[i].x+cartaWidth-16 - j*8+xf)*res, (data.car[i].y+cartaHeight-12+yf)*res);
+	                         ctx.drawImage(spPVB, (cartaUsuario.x+cartaWidth-16 - j*8+xf)*res, (cartaUsuario.y+cartaHeight-12+yf)*res);
 	                    }
 	               }
+
+				// Si esta carta está seleccionada, obtenemos su imagen
+				if (cartaUsuario.seleccionada) {
+					spCartaDraw = cartasDraw[i];
+				}
 	          }
 	     }
 
@@ -651,16 +663,13 @@ $(function(){
 	     //ctx.drawImage(spFondoDerechaMitad, 1280-360, 0);
 
 	     // La carta gigante
-		var img = new Image(); img.src = sprCartaVacia;
-		if (data.cartaDrawID != -1) {
-			img = cartasDraw[Number(data.cartaDrawID)];
-	     }
-		ctx.drawImage(img, 940*res, 20*res, 320*res, 450*res);
+		ctx.drawImage(spCartaDraw, 940*res, 20*res, 320*res, 450*res);
 
 	     // Los PV de la carta gigante
 	     for (var i = 0; i < nCartas; ++i) {
 	          if (data.car[i].huecoOcupado >= 0) {
-	               if (data.car[i].seleccionada && !data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
+				var cartaUsuario = getCartaUsuario(data.car[i], data.usuarioID);
+	               if (cartaUsuario.seleccionada && !data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
 	                    if (j < data.car[i].pv) ctx.drawImage(spPVL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
 	                    else ctx.drawImage(spPVBL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
 	               }
@@ -669,6 +678,7 @@ $(function(){
 	}
 
 	function drawMenu(data) { // Dibujamos el menú de las cartas
+		var cartaUsuarioDraw = getCartaUsuario(data.car[data.imenuDraw], data.usuarioID);
 	     // El menú
 	     if (data.menuScale > 0) for (var m = 0; m < 8; ++m) {
 	          // Preparamos los iconos de los menús
@@ -689,8 +699,8 @@ $(function(){
 
 	          // Dibujamos los menús, seleccionados o no
 	          if (m != 2 && m != 3) { // Excluimos las 2 de abajo porque quizás no son necesarias y así vemos los PV avanzar en tiempo real
-				setAlphaParte(data.car[data.imenuDraw].y, mousey);
-	               drawImageRotateTwo(menuDraw[7-m], icono, m*45+data.menuScale*360, data.car[data.imenuDraw].x+cartaWidth/2+offset, data.car[data.imenuDraw].y+cartaHeight/2, 0, 0, menuWidth*data.menuScale, menuHeight*data.menuScale, -20, menuHeight);
+				setAlphaParte(cartaUsuarioDraw.y, mousey);
+	               drawImageRotateTwo(menuDraw[7-m], icono, m*45+data.menuScale*360, cartaUsuarioDraw.x+cartaWidth/2+offset, cartaUsuarioDraw.y+cartaHeight/2, 0, 0, menuWidth*data.menuScale, menuHeight*data.menuScale, -20, menuHeight);
 				resetAlphaParte();
 			}
 	     }
@@ -742,10 +752,10 @@ $(function(){
 	function drawNuevoTurno(data) { // Iniciamos un nuevo turno
 	     if (data.comenzado) {
 	          // El botón de Nuevo Turno
-	          var sc = 1 + 0.5*Math.sin(data.nuevoTurnoAngle*Math.PI/180);
+	          /*var sc = 1 + 0.5*Math.sin(data.nuevoTurnoAngle*Math.PI/180);
 			var spNuevoTurno = new Image();
 			if (data.sprNuevoTurno != "") spNuevoTurno.src = window[data.sprNuevoTurno];
-	          drawImageRotate(spNuevoTurno , 0, 1100, 518, 0, 0, 150*sc, 50, 75*sc, 0);
+	          drawImageRotate(spNuevoTurno , 0, 1100, 518, 0, 0, 150*sc, 50, 75*sc, 0);*/
 
 	          ctx.font = 20*res + "px Georgia";
 	          ctx.fillStyle = "white";
@@ -754,7 +764,7 @@ $(function(){
 	}
 
 	//############################################################################################################################################################################################################################
-     //#################################### MÉTODOS HELPER ###################################################################################################################################################################
+     //#################################### MÉT-ODOS HELPER ###################################################################################################################################################################
      //############################################################################################################################################################################################################################
 
      function drawImageRotate(image, angle, positionX, positionY, xoffset, yoffset, width, height, axisX, axisY) { // Dibuja una imagen rotada
@@ -788,8 +798,31 @@ $(function(){
           return i < 93;
      }
 
+	function getCartaUsuario(carta, usuarioID) {
+	     if (carta.cartaUsuario[0].usuarioID == usuarioID) return carta.cartaUsuario[0];
+	     else return carta.cartaUsuario[1];
+	}
+
+	function getHuecoUsuario(hueco, usuarioID) {
+	     if (hueco.huecoUsuario[0].usuarioID == usuarioID) return hueco.huecoUsuario[0];
+	     else return hueco.huecoUsuario[1];
+	}
+
+	// Obtenemos el ángulo en el lado normal, si la carta es tuya, o en el lado alterado, si es del rival
+	function getAnglePorLado(data, iCarta, offset) {
+		// Recibimos isLadoNormal para la primera carta. Será true si este cliente corresponde a las 31 primeras cartas.
+		// Por lo tanto, si isLadoNormal = true, dibujamos normal las 31 primeras. Si no, dibujamos normal las 31 últimas.
+	     var normal = (data.isLadoNormal && iCarta <= 30) || (!data.isLadoNormal && iCarta >= 31);
+	     var angle = data.car[iCarta].angleDraw - offset;
+
+	     // Si es tu lado, devuelve el angle sin problemas
+	     if (normal) return angle;
+	     // Si es el lado rival... debes rotarlo acorde
+	     else return angle+180;
+	}
+
      //############################################################################################################################################################################################################################
-     //#################################### MÉTODOS CALCULADORES ############################################################################################################################################################
+     //#################################### MÉT-ODOS CALCULADORES ############################################################################################################################################################
      //############################################################################################################################################################################################################################
 
      function angular(angle) {
