@@ -133,6 +133,7 @@ var sesiones = new Array();
 
 function obSesion() {
      this.usuarioID = ""; // El usuarioID de la sesión
+     this.usuarioPass = ""; // El usuarioPass de la sesión
      this.cont = 0; // Contador de tiempo que tu sesión permanece iniciada
 }
 
@@ -310,19 +311,19 @@ io.on('connection', (socket) => {
      socket.on('mousePress', (data) => {
           var dataAux = data;
           dataAux.mousePress = true;
-          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMousePress, socket, data);
+          if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMousePress, socket, data);
           else doFromUsuarioYPartida(setMousePress, socket, dataAux);
      });
 
      socket.on('mouseRelease', (data) => {
           var dataAux = data;
           dataAux.mouseRelease = true;
-          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseRelease, socket, data);
+          if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseRelease, socket, data);
           else doFromUsuarioYPartida(setMouseRelease, socket, dataAux);
      });
 
      socket.on('mouseMove', (data) => {
-          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseMove, socket, data);
+          if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseMove, socket, data);
           else doFromUsuarioYPartida(setMouseMove, socket, data);
      });
 
@@ -338,7 +339,7 @@ io.on('connection', (socket) => {
 
      socket.on('main', (data) => {
           // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
-          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(mainAfterSettings, socket, data);
+          if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(mainAfterSettings, socket, data);
           else doFromUsuarioYPartida(mainAfterSettings, socket, data);
      });
 });
@@ -1389,7 +1390,7 @@ function doFromUsuarioYPartida(func, socket, data) {
                     con.query("select * from Partidas where partidaID = '" + data.partidaID + "' and (partidaCreadorUsuarioID = '" + data.usuarioID + "' or partidaRivalUsuarioID = '" + data.usuarioID + "');", (errSelectDoFromUsuarioYPartida2, resultSelectDoFromUsuarioYPartida2) => {
                          if (errSelectDoFromUsuarioYPartida2) throw errSelectDoFromUsuarioYPartida2;
                          if (resultSelectDoFromUsuarioYPartida2.length > 0) {
-                              setSesion(data.usuarioID);
+                              setSesion(data.usuarioID, data.usuarioPass);
                               continueFromUsuarioYPartidaChecked(func, socket, data);
                          }
                     });
@@ -1431,24 +1432,25 @@ function setMouseMove(socket, partida, usuario, data) {
 }
 
 // Añade la sesión si no existe
-function setSesion(usuarioID) {
+function setSesion(usuarioID, usuarioPass) {
      var encontrada = false;
      for (var i = 0; i < sesiones.length; ++i) {
-          if (sesiones[i].usuarioID == usuarioID) encontrada = true;
+          if (sesiones[i].usuarioID == usuarioID && sesiones[i].usuarioPass == usuarioPass) encontrada = true;
      }
 
      if (!encontrada) {
           var ses = new obSesion();
           ses.usuarioID = usuarioID;
-          ses.cont = 60*60*10; // 10 minutos de sesión activa
+          ses.usuarioPass = usuarioPass;
+          ses.cont = 60*60*60; // 1 hora de sesión activa (aprox)
           sesiones.push(ses);
      }
 }
 
 // La sesión para el usuarioID y la partidaID está activa?
-function isSesionActiva(usuarioID, partidaID) {
+function isSesionActiva(usuarioID, usuarioPass, partidaID) {
      for (var i = 0; i < sesiones.length; ++i) {
-          if (sesiones[i].usuarioID == usuarioID) {
+          if (sesiones[i].usuarioID == usuarioID && sesiones[i].usuarioPass == usuarioPass) {
                for (var j = 0; j < nPartidas; ++j) {
                     if (partidas[j].partidaID == partidaID && (partidas[j].usuarios[0].usuarioID == usuarioID || partidas[j].usuarios[1].usuarioID == usuarioID)) return true;
                }
