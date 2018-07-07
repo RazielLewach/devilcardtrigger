@@ -355,7 +355,7 @@ $(function(){
 	});
 
      // Bucle main
-     setInterval(main, 10);
+     setInterval(main, 16);
 
      function main() {
 		if (loginScreen) {
