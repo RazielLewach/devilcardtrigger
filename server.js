@@ -127,6 +127,15 @@ var cartaWidth = 64;
 var cartaHeight = 90;
 var iAsignaCarta = 0; // Para asignar las cartas más fácilmente y crear la deck
 
+// Sesiones de los usuarios para no preguntar a la base de datos a cada instante
+// No deberá almacenarse en base de datos. Si se borra o resetea, se volverá a crear y ya. Es algo dinámico.
+var sesiones = new Array();
+
+function obSesion() {
+     this.usuarioID = ""; // El usuarioID de la sesión
+     this.cont = 0; // Contador de tiempo que tu sesión permanece iniciada
+}
+
 // Gestionamos múltiples partidas a la vez
 nPartidas = 0;
 partidas = new Array();
@@ -328,8 +337,10 @@ io.on('connection', (socket) => {
           doFromUsuario(unirseAPartida, socket, data);
      });
 
-     socket.on('main', (data) => { // De aquí leer el ID del que lo llama para saber qué cliente es
-          doFromUsuarioYPartida(mainAfterSettings, socket, data);
+     socket.on('main', (data) => {
+          // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
+          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(mainAfterSettings, socket, data);
+          else doFromUsuarioYPartida(mainAfterSettings, socket, data);
      });
 });
 
@@ -372,9 +383,16 @@ function mainAfterSettings(socket, partida, usuario, data) {
           });
 
           // Enviamos isLadoNormal para la primera carta. Será true si este cliente corresponde a las 31 primeras cartas.
-
           usuario.mousePress = false;
           usuario.mouseRelease = false;
+
+          // Gestionamos las sesiones reduciendo el contador. Si se vacía, la sesión desaparece
+          for (var i = 0; i < sesiones.length; ++i) {
+               --sesiones[i].cont;
+               if (sesiones[i].cont <= 0) {
+                    sesiones.splice(i, 1);
+               }
+          }
      }
 }
 
@@ -1234,7 +1252,6 @@ function crearPartida(socket, cuenta, data) {
                     else { // Si ya ha sido creada...
                          // Si eres creador o rival, simplemente cargamos las cartas al tablero desde BD
                          if (resultSelectCrearPartida[0].partidaCreadorUsuarioID == cuenta.usuarioID || resultSelectCrearPartida[0].partidaRivalUsuarioID == cuenta.usuarioID) {
-                              // ESTO YA NO cargarCartas(socket, data, resultSelectCrearPartida[0].cartaPV, false, 31);
                               socket.emit('partidaIniciada');
 
                               for (var i = 0; i < nPartidas; ++i) {
@@ -1248,7 +1265,7 @@ function crearPartida(socket, cuenta, data) {
                                              partidas[i].usuarios[1].cargaImagenesHuecos = 1;
                                              partidas[i].usuarios[1].cargaImagenesCartas = 1;
                                              partidas[i].usuarios[1].cargaImagenesMenus = 1;
-                                   }
+                                        }
                                    }
                               }
                          }
@@ -1373,6 +1390,7 @@ function doFromUsuarioYPartida(func, socket, data) {
                     con.query("select * from Partidas where partidaID = '" + data.partidaID + "' and (partidaCreadorUsuarioID = '" + data.usuarioID + "' or partidaRivalUsuarioID = '" + data.usuarioID + "');", (errSelectDoFromUsuarioYPartida2, resultSelectDoFromUsuarioYPartida2) => {
                          if (errSelectDoFromUsuarioYPartida2) throw errSelectDoFromUsuarioYPartida2;
                          if (resultSelectDoFromUsuarioYPartida2.length > 0) {
+                              setSesion(data.usuarioID);
                               continueFromUsuarioYPartidaChecked(func, socket, data);
                          }
                     });
@@ -1411,6 +1429,34 @@ function setMouseMove(socket, partida, usuario, data) {
 
      // Desplazar el campo
 	usuario.xCampo = Math.min(Math.max(-data.mousex*1.105, -1000), -20);
+}
+
+// Añade la sesión si no existe
+function setSesion(usuarioID) {
+     var encontrada = false;
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID) encontrada = true;
+     }
+
+     if (!encontrada) {
+          var ses = new obSesion();
+          ses.usuarioID = usuarioID;
+          ses.cont = 60*60*10; // 10 minutos de sesión activa
+          sesiones.push(ses);
+     }
+}
+
+// La sesión para el usuarioID y la partidaID está activa?
+function isSesionActiva(usuarioID, partidaID) {
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID) {
+               for (var j = 0; j < nPartidas; ++j) {
+                    if (partidas[j].partidaID == partidaID && (partidas[j].usuarios[0].usuarioID == usuarioID || partidas[j].usuarios[1].usuarioID == usuarioID)) return true;
+               }
+               return false;
+          }
+     }
+     return false;
 }
 
 // TODO hacer mét-odo para almacenar de la estructura partidas y usuarios hacia base de datos, y otro para traerlas de vuelta.
