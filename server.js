@@ -310,17 +310,20 @@ io.on('connection', (socket) => {
      socket.on('mousePress', (data) => {
           var dataAux = data;
           dataAux.mousePress = true;
-          doFromUsuarioYPartida(setMousePress, socket, dataAux);
+          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMousePress, socket, data);
+          else doFromUsuarioYPartida(setMousePress, socket, dataAux);
      });
 
      socket.on('mouseRelease', (data) => {
           var dataAux = data;
           dataAux.mouseRelease = true;
-          doFromUsuarioYPartida(setMouseRelease, socket, dataAux);
+          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseRelease, socket, data);
+          else doFromUsuarioYPartida(setMouseRelease, socket, dataAux);
      });
 
      socket.on('mouseMove', (data) => {
-          doFromUsuarioYPartida(setMouseMove, socket, data);
+          if (isSesionActiva(data.usuarioID, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseMove, socket, data);
+          else doFromUsuarioYPartida(setMouseMove, socket, data);
      });
 
      // Iniciamos sesión o registramos el usuario
@@ -331,10 +334,6 @@ io.on('connection', (socket) => {
      // Crear partida
      socket.on('crearPartida', (data) => {
           doFromUsuario(crearPartida, socket, data);
-     });
-
-     socket.on('unirseAPartida', (data) => {
-          doFromUsuario(unirseAPartida, socket, data);
      });
 
      socket.on('main', (data) => {
