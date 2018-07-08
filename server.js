@@ -24,13 +24,13 @@ pool.getConnection((errStart, con) => {
      console.log("¡Conectado a la base de datos!");
 
      // Gestiones de tablas
-     //con.query("drop table if exists Cartas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Cartas ha sido borrada");});
-     //con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
-     //con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
+     con.query("drop table if exists Cartas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Cartas ha sido borrada");});
+     con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
+     con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
 
-     //con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
-     //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
-     //con.query("create table if not exists Cartas (cartaID int not null, cartaNombre varchar(50) not null, cartaPV int not null, cartaRango int not null, cartaClase varchar(1) not null, cartaEspecie varchar(1) not null, cartaElemento varchar(1) not null, primary key (cartaID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Cartas ha sido creada");});
+     con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
+     con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
+     con.query("create table if not exists Cartas (cartaID int not null, cartaNombre varchar(50) not null, cartaPV int not null, cartaRango int not null, cartaClase varchar(1) not null, cartaEspecie varchar(1) not null, cartaElemento varchar(1) not null, primary key (cartaID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Cartas ha sido creada");});
 
      /*for (var i = 0; i <= 52; ++i) {
           con.query("delete from Cartas where cartaID = '" + i + "';", function (errDelete) {if (errDelete) throw errDelete; console.log("Carta borrada");});
@@ -135,6 +135,7 @@ function obSesion() {
      this.usuarioID = ""; // El usuarioID de la sesión
      this.usuarioPass = ""; // El usuarioPass de la sesión
      this.cont = 0; // Contador de tiempo que tu sesión permanece iniciada
+     this.modoDesplazamiento = 2; // Cómo desplazas el campo con el mouse
 }
 
 // Gestionamos múltiples partidas a la vez
@@ -153,22 +154,15 @@ function obPartida() {
      // Los huecos
      this.huecos = new Array(); // Array de huecos que rellenamos de forma automática al crearlos
      // Ejército
-     generaGridDeHuecos(this.huecos, 1, 340, 510, 1, 1, cartaHeight-25, cartaHeight+10, false); // General
+     generaGridDeHuecos(this.huecos, 1, 873, 535, 1, 1, cartaHeight-25, cartaHeight+10, false); // General
      //
-     generaGridDeHuecos(this.huecos, 1, 48, 419, 1, 4, cartaHeight-25, cartaHeight+10, false); // Fila superior L
-     generaGridDeHuecos(this.huecos, 1, 308, 410, 1, 2, cartaHeight-25, cartaHeight+10, false); // Fila superior M
-     generaGridDeHuecos(this.huecos, 1, 438, 419, 1, 4, cartaHeight-25, cartaHeight+10, false); // Fila superior R
-     //
-     generaGridDeHuecos(this.huecos, 1, 0, 510, 1, 5, cartaHeight-25, cartaHeight+10, false); // Fila intermedia L
-     generaGridDeHuecos(this.huecos, 1, 420, 510, 1, 5, cartaHeight-25, cartaHeight+10, false); // Fila intermedia R
-     //
-     generaGridDeHuecos(this.huecos, 1, 48, 601, 1, 4, cartaHeight-25, cartaHeight+10, false); // Fila inferior L
-     generaGridDeHuecos(this.huecos, 1, 308, 610, 1, 2, cartaHeight-25, cartaHeight+10, false); // Fila inferior M
-     generaGridDeHuecos(this.huecos, 1, 438, 601, 1, 4, cartaHeight-25, cartaHeight+10, false); // Fila inferior R
+     generaGridDeHuecos(this.huecos, 1, -10, 419, 1, 10, cartaHeight-25, cartaHeight+10, false); // Fila superior
+     generaGridDeHuecos(this.huecos, 1, -10, 510, 1, 10, cartaHeight-25, cartaHeight+10, false); // Fila intermedia
+     generaGridDeHuecos(this.huecos, 1, -10, 601, 1, 10, cartaHeight-25, cartaHeight+10, false); // Fila inferior
      // Limbo tuyo
-     generaGridDeHuecos(this.huecos, 2, 1100, 420, 1, 10, cartaHeight-25, cartaHeight+10, false);
+     generaGridDeHuecos(this.huecos, 2, 1145, 420, 1, 10, cartaHeight-25, cartaHeight+10, false);
      generaGridDeHuecos(this.huecos, 2, 1145, 510, 1, 10, cartaHeight-25, cartaHeight+10, false);
-     generaGridDeHuecos(this.huecos, 2, 1100, 600, 1, 10, cartaHeight-25, cartaHeight+10, false);
+     generaGridDeHuecos(this.huecos, 2, 1145, 600, 1, 10, cartaHeight-25, cartaHeight+10, false);
      // Vanguardia + Reserva tuya
      generaGridDeHuecos(this.huecos, 0, 10, 210, 2, 3, cartaHeight+10, cartaHeight+10, false);
      generaGridDeHuecos(this.huecos, 0, 360, 210, 2, 3, cartaHeight+10, cartaHeight+10, false);
@@ -177,9 +171,9 @@ function obPartida() {
      generaGridDeHuecos(this.huecos, 0, 1180, 210, 2, 3, cartaHeight+10, cartaHeight+10, false);
      generaGridDeHuecos(this.huecos, 0, 1530, 210, 2, 3, cartaHeight+10, cartaHeight+10, false);
      // Limbo rival
-     generaGridDeHuecos(this.huecos, 2, 1100, 420, 1, 10, cartaHeight-25, cartaHeight+10, false);
+     generaGridDeHuecos(this.huecos, 2, 1145, 420, 1, 10, cartaHeight-25, cartaHeight+10, false);
      generaGridDeHuecos(this.huecos, 2, 1145, 510, 1, 10, cartaHeight-25, cartaHeight+10, false);
-     generaGridDeHuecos(this.huecos, 2, 1100, 600, 1, 10, cartaHeight-25, cartaHeight+10, false);
+     generaGridDeHuecos(this.huecos, 2, 1145, 600, 1, 10, cartaHeight-25, cartaHeight+10, false);
      // Vanguardia + Reserva rival
      generaGridDeHuecos(this.huecos, 0, 10, 110, 2, 3, cartaHeight+10, cartaHeight+10, true);
      generaGridDeHuecos(this.huecos, 0, 360, 110, 2, 3, cartaHeight+10, cartaHeight+10, true);
@@ -195,7 +189,7 @@ function obUsuario() {
      this.mousePress = false; // click pulsado actualmente
      this.mouseRelease = false; // Click alzado actualmente
      this.mousex, this.mousey; // Coordenadas del ratón
-     this.xCampo = 0; // Desplaza el campo horizontalmente
+     this.xCampo = -510; // Desplaza el campo horizontalmente
      this.generalColocado = false; // Primero debes colocar el general o bloquea el resto de Ejército
      this.nComenzado = 0; // Al colocar 2, comienzas
      this.comenzado = false; // Tras colocar el General debes colocar 2 Criaturas para bloquear el resto del Ejército
@@ -222,6 +216,15 @@ function obUsuario() {
      this.menuScale = 0; // Animación progresiva
      // Los huecos
      this.sprLimboBoton = ""; // Eso
+     // Modos de desplazamiento. Al cambiar dinámicamente in-game, tener variables separadas
+     // Modo 0 (NADA)
+     // Modo 1
+     this.incModoDesplazamiento = 0; // Cantidad de desplazamiento
+     this.objetivoDesplazamiento = 0; // Hacia dónde te mueves
+     // Modo 2
+     this.cooldownDesplazamiento = 0; // Cantidad de desplazamiento
+     this.ladoDesplazamiento = 0; // Hacia dónde te mueves
+     this.gradualDesplazamiento = 0; // Hacia dónde te mueves
 }
 
 
@@ -350,6 +353,9 @@ io.on('connection', (socket) => {
 
 function mainAfterSettings(socket, partida, usuario, data) {
      if (partida != null && usuario != null) {
+          var sesion = getSesion(data.usuarioID);
+
+          gestionSistema(socket, data, partida, usuario);
           gestionHuecos(socket, data, partida, usuario);
           gestionSwapLimbo(socket, data, partida, usuario);
           gestionCartas(socket, data, partida, usuario);
@@ -360,61 +366,59 @@ function mainAfterSettings(socket, partida, usuario, data) {
           gestionTrigger(socket, data, partida, usuario);
           gestionNuevoTurno(socket, data, partida, usuario);
 
-          // En cada step, enviamos las imágenes a cargar sólo cuando toca
-          // Gestionar que CADA VEZ QUE UN USUARIO CREA/SE UNA A UNA PARTIDA, ASIGNAR CARGAIMAGENES A TRUE PARA QUE LAS CARGUE EN SU SIGUIENTE MAIN.
-          if (usuario.cargaImagenesHuecos > 0) {
-               cargarImagenesHuecos(socket, partida, usuario);
-               --usuario.cargaImagenesHuecos;
-          }
-          if (usuario.cargaImagenesCartas > 0) {
-               cargarImagenesCartas(socket, partida, usuario);
-               --usuario.cargaImagenesCartas;
-          }
-          if (usuario.cargaImagenesMenus > 0) {
-               cargarImagenesMenus(socket, partida, usuario);
-               --usuario.cargaImagenesMenus;
-          }
-
           // Enviamos la señal
           socket.emit('main', {
                isLadoNormal:isLadoNormal(partida, 0, usuario.usuarioID), hue:partida.huecos, car:partida.cartas, men:usuario.spMenuA, usuarioID:usuario.usuarioID, generalColocado:usuario.generalColocado,
                comenzado:usuario.comenzado, candado:usuario.candado, xCampo:usuario.xCampo, menuScale:usuario.menuScale, imenuDraw:usuario.imenuDraw, umbralTrigger:usuario.umbralTrigger,
-               triggerGenerado:usuario.triggerGenerado, trigger:usuario.trigger, sprLimboBoton:usuario.sprLimboBoton, nEjercitoRival:usuario.nEjercitoRival
+               triggerGenerado:usuario.triggerGenerado, trigger:usuario.trigger, sprLimboBoton:usuario.sprLimboBoton, nEjercitoRival:usuario.nEjercitoRival,
+               modoDesplazamiento:sesion.modoDesplazamiento,  ladoDesplazamiento:usuario.ladoDesplazamiento
           });
 
-          // Enviamos isLadoNormal para la primera carta. Será true si este cliente corresponde a las 31 primeras cartas.
-          usuario.mousePress = false;
-          usuario.mouseRelease = false;
+          gestionPostCiclo(socket, data, partida, usuario);
+          cargarImagenesHuecos(socket, partida, usuario);
+          cargarImagenesCartas(socket, partida, usuario);
+          cargarImagenesMenus(socket, partida, usuario);
+     }
+}
 
-          // Gestionamos las sesiones reduciendo el contador. Si se vacía, la sesión desaparece
-          for (var i = 0; i < sesiones.length; ++i) {
-               --sesiones[i].cont;
-               if (sesiones[i].cont <= 0) {
-                    sesiones.splice(i, 1);
+function gestionSistema(socket, data, partida, usuario) { // Ajustes varios
+     // Desplazar el campo
+     var sesion = getSesion(data.usuarioID);
+     if (sesion.modoDesplazamiento == 0) { // Desplazamiento ligado al mousex, se mueven ambos a la vez
+          usuario.xCampo = Math.min(Math.max(-usuario.mousex*1.105, -1000), -20);
+     }
+     else if (sesion.modoDesplazamiento == 1) { // Sólo al llevar el ratón a un lado se desplaza
+          var left = usuario.mousex < 100;
+          var right = usuario.mousex > 1280-360-100;
+          var velocidad = 0;
+          if (left || right) velocidad = 15;
+          usuario.incModoDesplazamiento = tiendeAX(usuario.incModoDesplazamiento, velocidad, 1);
+
+          if (left) usuario.objetivoDesplazamiento = -20;
+          else if (right) usuario.objetivoDesplazamiento = -1000;
+          usuario.xCampo = tiendeAX(usuario.xCampo, usuario.objetivoDesplazamiento, usuario.incModoDesplazamiento);
+     }
+     else if (sesion.modoDesplazamiento == 2) { // Tres zonas, al tocar los lados, da un salto
+          usuario.cooldownDesplazamiento = Math.max(usuario.cooldownDesplazamiento-1, 0);
+          var left = usuario.mousex < 150;
+          var right = usuario.mousex > 1280-360-150;
+
+          if (usuario.cooldownDesplazamiento == 0) {
+               if (left && usuario.ladoDesplazamiento >= 0) {
+                    --usuario.ladoDesplazamiento;
+                    usuario.cooldownDesplazamiento = 60*1;
+               }
+               else if (right && usuario.ladoDesplazamiento <= 0) {
+                    ++usuario.ladoDesplazamiento;
+                    usuario.cooldownDesplazamiento = 60;
                }
           }
-     }
-}
 
-function cargarImagenesHuecos(socket, partida, usuario) {
-     var hue = new Array();
-     for (j = 0; j < nHuecos; ++j) {
-          var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
-          hue.push({hue:huecoUsuario.image});
-     }
-     socket.emit('cargarImagenesHuecos', {hue:hue});
-}
+          if (usuario.cooldownDesplazamiento > 30) usuario.gradualDesplazamiento = Math.min(usuario.gradualDesplazamiento+0.55, 16.5);
+          else usuario.gradualDesplazamiento = Math.max(usuario.gradualDesplazamiento-0.55, 0);
 
-function cargarImagenesCartas(socket, partida, usuario) {
-     var car = new Array();
-     for (i = 0; i < nCartas; ++i) {
-          car.push({car:partida.cartas[i].cid, cla:partida.cartas[i].sprClase, esp:partida.cartas[i].sprEspecie, ele:partida.cartas[i].sprElemento});
+          usuario.xCampo = tiendeAX(usuario.xCampo, -510 -490*usuario.ladoDesplazamiento, usuario.gradualDesplazamiento);
      }
-     socket.emit('cargarImagenesCartas', {car:car});
-}
-
-function cargarImagenesMenus(socket, partida, usuario) {
-     socket.emit('cargarImagenesMenus', {men:usuario.spMenuA});
 }
 
 function gestionHuecos(socket, data, partida, usuario) { // Simplemente gestión huecos
@@ -861,6 +865,53 @@ function gestionNuevoTurno(socket, data, partida, usuario) { // Iniciamos un nue
      }
 }
 
+function gestionPostCiclo(socket, data, partida, usuario) { // Ajustes al acabar el ciclo
+     // Enviamos isLadoNormal para la primera carta. Será true si este cliente corresponde a las 31 primeras cartas.
+     usuario.mousePress = false;
+     usuario.mouseRelease = false;
+
+     // Gestionamos las sesiones reduciendo el contador. Si se vacía, la sesión desaparece
+     for (var i = 0; i < sesiones.length; ++i) {
+          --sesiones[i].cont;
+          if (sesiones[i].cont <= 0) {
+               sesiones.splice(i, 1);
+          }
+     }
+}
+
+function cargarImagenesHuecos(socket, partida, usuario) {
+     if (usuario.cargaImagenesHuecos > 0) {
+          --usuario.cargaImagenesHuecos;
+
+          var hue = new Array();
+          for (j = 0; j < nHuecos; ++j) {
+               var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
+               hue.push({hue:huecoUsuario.image});
+          }
+          socket.emit('cargarImagenesHuecos', {hue:hue});
+     }
+}
+
+function cargarImagenesCartas(socket, partida, usuario) {
+     if (usuario.cargaImagenesCartas > 0) {
+          --usuario.cargaImagenesCartas;
+
+          var car = new Array();
+          for (i = 0; i < nCartas; ++i) {
+               car.push({car:partida.cartas[i].cid, cla:partida.cartas[i].sprClase, esp:partida.cartas[i].sprEspecie, ele:partida.cartas[i].sprElemento});
+          }
+          socket.emit('cargarImagenesCartas', {car:car});
+     }
+}
+
+function cargarImagenesMenus(socket, partida, usuario) {
+     if (usuario.cargaImagenesMenus > 0) {
+          --usuario.cargaImagenesMenus;
+
+          socket.emit('cargarImagenesMenus', {men:usuario.spMenuA});
+     }
+}
+
 //############################################################################################################################################################################################################################
 //#################################### MÉT-ODOS HELPER #############################################################################################################################################################
 //############################################################################################################################################################################################################################
@@ -942,12 +993,12 @@ function nuevaPartida(data, crea) { // Creamos una nueva partida con t-odos los 
           ind = nPartidas;
 
           // TODO TRUCOS
-          partidas[nPartidas].usuarios[0].generalColocado = true;
+          /*partidas[nPartidas].usuarios[0].generalColocado = true;
           partidas[nPartidas].usuarios[0].nComenzado = 2;
           partidas[nPartidas].usuarios[0].comenzado = true;
           partidas[nPartidas].usuarios[1].generalColocado = true;
           partidas[nPartidas].usuarios[1].nComenzado = 2;
-          partidas[nPartidas].usuarios[1].comenzado = true;
+          partidas[nPartidas].usuarios[1].comenzado = true;*/
      }
      else {
           for (var i = 0; i < nPartidas; ++i) {
@@ -1094,6 +1145,13 @@ function getPVsDeCartas(array, cartas) {
           }
      }
      return pvs;
+}
+
+function getSesion(usuarioID) {
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID) return sesiones[i];
+     }
+     return null;
 }
 
 //############################################################################################################################################################################################################################
@@ -1426,9 +1484,6 @@ function setMouseRelease(socket, partida, usuario, data) {
 function setMouseMove(socket, partida, usuario, data) {
      usuario.mousex = data.mousex;
      usuario.mousey = data.mousey;
-
-     // Desplazar el campo
-	usuario.xCampo = Math.min(Math.max(-data.mousex*1.105, -1000), -20);
 }
 
 // Añade la sesión si no existe
