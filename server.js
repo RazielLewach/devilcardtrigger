@@ -32,11 +32,11 @@ pool.getConnection((errStart, con) => {
      //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
      //con.query("create table if not exists Cartas (cartaID int not null, cartaNombre varchar(50) not null, cartaPV int not null, cartaRango int not null, cartaClase varchar(1) not null, cartaEspecie varchar(1) not null, cartaElemento varchar(1) not null, primary key (cartaID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Cartas ha sido creada");});
 
-     for (var i = 0; i <= 52; ++i) {
+     /*for (var i = 0; i <= 52; ++i) {
           con.query("delete from Cartas where cartaID = '" + i + "';", function (errDelete) {if (errDelete) throw errDelete; console.log("Carta borrada");});
-     }
+     }*/
 
-     var ica = 0;
+     /*var ica = 0;
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (0, '0', 4, 0, 'G', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (1, '1', 2, 1, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (2, '2', 2, 1, 'T', 'E', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
@@ -90,7 +90,7 @@ pool.getConnection((errStart, con) => {
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (49, '49', 3, 4, 'A', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (50, '50', 2, 0, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
      con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (51, '51', 2, 0, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-
+     */
 
      con.release();
 });
