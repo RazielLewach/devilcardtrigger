@@ -24,73 +24,12 @@ pool.getConnection((errStart, con) => {
      console.log("¡Conectado a la base de datos!");
 
      // Gestiones de tablas
-     //con.query("drop table if exists Cartas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Cartas ha sido borrada");});
-     //con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
-     //con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
+     con.query("drop table if exists Cartas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Cartas ha sido borrada");});
+     con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
+     con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
 
-     //con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
-     //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
-     //con.query("create table if not exists Cartas (cartaID int not null, cartaNombre varchar(50) not null, cartaPV int not null, cartaRango int not null, cartaClase varchar(1) not null, cartaEspecie varchar(1) not null, cartaElemento varchar(1) not null, primary key (cartaID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Cartas ha sido creada");});
-
-     /*for (var i = 0; i <= 52; ++i) {
-          con.query("delete from Cartas where cartaID = '" + i + "';", function (errDelete) {if (errDelete) throw errDelete; console.log("Carta borrada");});
-     }*/
-
-     /*var ica = 0;
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (0, '0', 4, 0, 'G', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (1, '1', 2, 1, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (2, '2', 2, 1, 'T', 'E', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (3, '3', 2, 1, 'T', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (4, '4', 2, 1, 'T', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (5, '5', 4, 0, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (6, '6', 1, 2, 'C', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (7, '7', 3, 1, 'V', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (8, '8', 2, 0, 'V', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (9, '9', 2, 0, 'T', 'A', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (10, '10', 2, 2, 'R', 'A', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (11, '11', 2, 3, 'R', 'E', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (12, '12', 3, 2, 'T', 'E', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (13, '13', 2, 3, 'A', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (14, '14', 3, 0, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (15, '15', 2, 1, 'C', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (16, '16', 2, 0, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (17, '17', 3, 4, 'A', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (18, '18', 2, 1, 'T', 'E', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (19, '19', 1, 0, 'V', 'A', 'T');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (20, '20', 2, 0, 'V', 'A', 'N');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (21, '21', 4, 0, 'G', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (22, '22', 1, 0, 'V', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (23, '23', 2, 0, 'V', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (24, '24', 2, 1, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (25, '25', 2, 1, 'T', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (26, '26', 3, 3, 'R', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (27, '27', 1, 0, 'V', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (28, '28', 4, 1, 'V', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (29, '29', 2, 2, 'C', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (30, '30', 3, 3, 'A', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (31, '31', 2, 1, 'T', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (32, '32', 2, 1, 'C', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (33, '33', 1, 0, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (34, '34', 3, 2, 'C', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (35, '35', 2, 2, 'R', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (36, '36', 2, 2, 'C', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (37, '37', 3, 2, 'T', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (38, '38', 2, 1, 'T', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (39, '39', 3, 1, 'T', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (40, '40', 2, 2, 'R', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (41, '41', 2, 1, 'T', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (42, '42', 2, 0, 'V', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (43, '43', 2, 1, 'T', 'H', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (44, '44', 2, 0, 'V', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (45, '45', 2, 0, 'T', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (46, '46', 2, 1, 'V', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (47, '47', 3, 0, 'V', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (48, '48', 2, 1, 'C', 'H', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (49, '49', 3, 4, 'A', 'I', 'F');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (50, '50', 2, 0, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     con.query("insert into Cartas (cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) values (51, '51', 2, 0, 'V', 'I', 'E');", function (errInsert) {if (errInsert) throw errInsert; ++ica; console.log("La carta número " + ica + " ha sido añadida");});
-     */
+     con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
+     con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
 
      con.release();
 });
@@ -181,6 +120,14 @@ function obPartida() {
      generaGridDeHuecos(this.huecos, 0, 930, 110, 2, 2, cartaHeight+10, cartaHeight+10, true);
      generaGridDeHuecos(this.huecos, 0, 1180, 110, 2, 3, cartaHeight+10, cartaHeight+10, true);
      generaGridDeHuecos(this.huecos, 0, 1530, 110, 2, 3, cartaHeight+10, cartaHeight+10, true);
+}
+
+function generaGridDeHuecos(objeto, ind, x, y, nRow, nCol, sepW, sepH, resUp) {
+	for (var i = 0; i < nRow; ++i) {
+		for (var j = 0; j < nCol; ++j) {
+			objeto.push(new obHueco(ind, x+j*sepW, y+i*sepH*(1 - 2*resUp), i == 1 || nRow == 1 || nCol == 1));
+		}
+	}
 }
 
 function obUsuario() {
@@ -295,12 +242,71 @@ function obHuecoUsuario(x, y, vert) {
      }
 }
 
-function generaGridDeHuecos(objeto, ind, x, y, nRow, nCol, sepW, sepH, resUp) {
-	for (var i = 0; i < nRow; ++i) {
-		for (var j = 0; j < nCol; ++j) {
-			objeto.push(new obHueco(ind, x+j*sepW, y+i*sepH*(1 - 2*resUp), i == 1 || nRow == 1 || nCol == 1));
-		}
-	}
+// las cartas
+
+var infoCartas = new Array();
+infoCartas.push(new obInfoCarta(0, '0', 4, 0, 'G', 'E', 'N'));
+infoCartas.push(new obInfoCarta(1, '1', 2, 1, 'V', 'A', 'N'));
+infoCartas.push(new obInfoCarta(2, '2', 2, 1, 'T', 'E', 'T'));
+infoCartas.push(new obInfoCarta(3, '3', 2, 1, 'T', 'E', 'N'));
+infoCartas.push(new obInfoCarta(4, '4', 2, 1, 'T', 'E', 'N'));
+infoCartas.push(new obInfoCarta(5, '5', 4, 0, 'V', 'A', 'N'));
+infoCartas.push(new obInfoCarta(6, '6', 1, 2, 'C', 'A', 'N'));
+infoCartas.push(new obInfoCarta(7, '7', 3, 1, 'V', 'E', 'N'));
+infoCartas.push(new obInfoCarta(8, '8', 2, 0, 'V', 'E', 'N'));
+infoCartas.push(new obInfoCarta(9, '9', 2, 0, 'T', 'A', 'T'));
+infoCartas.push(new obInfoCarta(10, '10', 2, 2, 'R', 'A', 'T'));
+infoCartas.push(new obInfoCarta(11, '11', 2, 3, 'R', 'E', 'T'));
+infoCartas.push(new obInfoCarta(12, '12', 3, 2, 'T', 'E', 'T'));
+infoCartas.push(new obInfoCarta(13, '13', 2, 3, 'A', 'A', 'N'));
+infoCartas.push(new obInfoCarta(14, '14', 3, 0, 'V', 'A', 'N'));
+infoCartas.push(new obInfoCarta(15, '15', 2, 1, 'C', 'E', 'N'));
+infoCartas.push(new obInfoCarta(16, '16', 2, 0, 'V', 'A', 'N'));
+infoCartas.push(new obInfoCarta(17, '17', 3, 4, 'A', 'A', 'N'));
+infoCartas.push(new obInfoCarta(18, '18', 2, 1, 'T', 'E', 'N'));
+infoCartas.push(new obInfoCarta(19, '19', 1, 0, 'V', 'A', 'T'));
+infoCartas.push(new obInfoCarta(20, '20', 2, 0, 'V', 'A', 'N'));
+
+infoCartas.push(new obInfoCarta(21, '21', 4, 0, 'G', 'I', 'F'));
+infoCartas.push(new obInfoCarta(22, '22', 1, 0, 'V', 'I', 'F'));
+infoCartas.push(new obInfoCarta(23, '23', 2, 0, 'V', 'H', 'E'));
+infoCartas.push(new obInfoCarta(24, '24', 2, 1, 'V', 'I', 'E'));
+infoCartas.push(new obInfoCarta(25, '25', 2, 1, 'T', 'I', 'F'));
+infoCartas.push(new obInfoCarta(26, '26', 3, 3, 'R', 'H', 'F'));
+infoCartas.push(new obInfoCarta(27, '27', 1, 0, 'V', 'I', 'F'));
+infoCartas.push(new obInfoCarta(28, '28', 4, 1, 'V', 'H', 'F'));
+infoCartas.push(new obInfoCarta(29, '29', 2, 2, 'C', 'I', 'F'));
+infoCartas.push(new obInfoCarta(30, '30', 3, 3, 'A', 'I', 'E'));
+infoCartas.push(new obInfoCarta(31, '31', 2, 1, 'T', 'H', 'F'));
+infoCartas.push(new obInfoCarta(32, '32', 2, 1, 'C', 'I', 'E'));
+infoCartas.push(new obInfoCarta(33, '33', 1, 0, 'V', 'I', 'E'));
+infoCartas.push(new obInfoCarta(34, '34', 3, 2, 'C', 'H', 'E'));
+infoCartas.push(new obInfoCarta(35, '35', 2, 2, 'R', 'H', 'F'));
+infoCartas.push(new obInfoCarta(36, '36', 2, 2, 'C', 'H', 'E'));
+infoCartas.push(new obInfoCarta(37, '37', 3, 2, 'T', 'I', 'E'));
+infoCartas.push(new obInfoCarta(38, '38', 2, 1, 'T', 'H', 'E'));
+infoCartas.push(new obInfoCarta(39, '39', 3, 1, 'T', 'H', 'F'));
+infoCartas.push(new obInfoCarta(40, '40', 2, 2, 'R', 'I', 'F'));
+infoCartas.push(new obInfoCarta(41, '41', 2, 1, 'T', 'I', 'F'));
+infoCartas.push(new obInfoCarta(42, '42', 2, 0, 'V', 'H', 'E'));
+infoCartas.push(new obInfoCarta(43, '43', 2, 1, 'T', 'H', 'F'));
+infoCartas.push(new obInfoCarta(44, '44', 2, 0, 'V', 'I', 'F'));
+infoCartas.push(new obInfoCarta(45, '45', 2, 0, 'T', 'I', 'F'));
+infoCartas.push(new obInfoCarta(46, '46', 2, 1, 'V', 'I', 'F'));
+infoCartas.push(new obInfoCarta(47, '47', 3, 0, 'V', 'H', 'E'));
+infoCartas.push(new obInfoCarta(48, '48', 2, 1, 'C', 'H', 'E'));
+infoCartas.push(new obInfoCarta(49, '49', 3, 4, 'A', 'I', 'F'));
+infoCartas.push(new obInfoCarta(50, '50', 2, 0, 'V', 'I', 'E'));
+infoCartas.push(new obInfoCarta(51, '51', 2, 0, 'V', 'I', 'E'));
+
+function obInfoCarta(cartaID, cartaNombre, cartaPV, cartaRango, cartaClase, cartaEspecie, cartaElemento) {
+     this.cartaID = cartaID; // El identificador numérico de la carta
+     this.cartaNombre = cartaNombre; // El nombre de la carta
+     this.cartaPV = cartaPV; // Los PV de la carta
+     this.cartaRango = cartaRango; // El rango (coste) de la carta
+     this.cartaClase = cartaClase; // La clase de la carta
+     this.cartaEspecie = cartaEspecie; // La especie de la carta
+     this.cartaElemento = cartaElemento; // El elemento de la carta
 }
 
 //#############################################################################################################################################################################################
@@ -345,15 +351,26 @@ io.on('connection', (socket) => {
           if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(mainAfterSettings, socket, data);
           else doFromUsuarioYPartida(mainAfterSettings, socket, data);
      });
+
+     socket.on('isOnline', (data) => {
+          // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
+          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, data);
+          else doFromUsuario(isOnline, socket, data);
+     });
 });
 
 //############################################################################################################################################################################################################################
 //#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
 //############################################################################################################################################################################################################################
 
+function isOnline(socket, data) {
+     socket.broadcast.emit('isOnline', {usuarioRivalID:data.usuarioID});
+}
+
 function mainAfterSettings(socket, partida, usuario, data) {
      if (partida != null && usuario != null) {
           var sesion = getSesion(data.usuarioID);
+          socket.broadcast.emit('isInGame', {usuarioRivalPartidaID:partida.partidaID});
 
           gestionSistema(socket, data, partida, usuario);
           gestionHuecos(socket, data, partida, usuario);
@@ -366,11 +383,15 @@ function mainAfterSettings(socket, partida, usuario, data) {
           gestionTrigger(socket, data, partida, usuario);
           gestionNuevoTurno(socket, data, partida, usuario);
 
+          // Obtenemos el ID del usuario rival
+          var usuarioRivalID = partida.usuarios[0].usuarioID;
+          if (partida.usuarios[0].usuarioID == usuario.usuarioID) usuarioRivalID = partida.usuarios[1].usuarioID;
+
           // Enviamos la señal
           socket.emit('main', {
-               isLadoNormal:isLadoNormal(partida, 0, usuario.usuarioID), hue:partida.huecos, car:partida.cartas, men:usuario.spMenuA, usuarioID:usuario.usuarioID, generalColocado:usuario.generalColocado,
-               comenzado:usuario.comenzado, candado:usuario.candado, xCampo:usuario.xCampo, menuScale:usuario.menuScale, imenuDraw:usuario.imenuDraw, umbralTrigger:usuario.umbralTrigger,
-               triggerGenerado:usuario.triggerGenerado, trigger:usuario.trigger, sprLimboBoton:usuario.sprLimboBoton, nEjercitoRival:usuario.nEjercitoRival,
+               isLadoNormal:isLadoNormal(partida, 0, usuario.usuarioID), hue:partida.huecos, car:partida.cartas, men:usuario.spMenuA, usuarioID:usuario.usuarioID, usuarioRivalID:usuarioRivalID,
+               generalColocado:usuario.generalColocado, comenzado:usuario.comenzado, candado:usuario.candado, xCampo:usuario.xCampo, menuScale:usuario.menuScale, imenuDraw:usuario.imenuDraw,
+               umbralTrigger:usuario.umbralTrigger, triggerGenerado:usuario.triggerGenerado, trigger:usuario.trigger, sprLimboBoton:usuario.sprLimboBoton, nEjercitoRival:usuario.nEjercitoRival,
                modoDesplazamiento:sesion.modoDesplazamiento,  ladoDesplazamiento:usuario.ladoDesplazamiento
           });
 
@@ -426,10 +447,8 @@ function gestionHuecos(socket, data, partida, usuario) { // Simplemente gestión
           var huecoUsuario = getHuecoUsuario(partida.huecos[j], usuario.usuarioID);
           // Los huecos colocados acorde.
           // Si no es Limbo (gestión normal) o es Limbo pero -> es tuyo y no pide swapear o es del rival y pide swapear, posición normal
-          if (huecoUsuario.ind == 2) {
-               if (
-                    (!usuario.swapLimbo && miCampo(j)) || (usuario.swapLimbo && !miCampo(j))
-               ) {
+          if (partida.huecos[j].ind == 2) {
+               if ((!usuario.swapLimbo && miCampo(j)) || (usuario.swapLimbo && !miCampo(j))) {
                     huecoUsuario.x = tiendeAX(huecoUsuario.x, huecoUsuario.xstart + 50+usuario.xCampo, 40 + 1000*(usuario.swapeando == 0));
                }
                else {
@@ -460,7 +479,7 @@ function gestionHuecos(socket, data, partida, usuario) { // Simplemente gestión
 }
 
 function gestionSwapLimbo(socket, data, partida, usuario) {
-     if (usuario.mousex > 1164+usuario.xCampo && usuario.mousex < 1164+usuario.xCampo+20 && usuario.mousey > 517 && usuario.mousey < 517+70) {
+     if (usuario.mousex > 1877+usuario.xCampo && usuario.mousex < 1877+usuario.xCampo+20 && usuario.mousey > 517 && usuario.mousey < 517+70) {
           if (!usuario.swapLimbo) {
                usuario.sprLimboBoton = "sprLimboBotonOnS";
           }
@@ -585,6 +604,11 @@ function gestionArrastrarCarta(socket, data, partida, usuario) { // Al clicar y 
                                                             var is = getICarta(usuario, partida, j); // i siguiente
                                                             // Carta de la Vanguardia objetivo a la anterior Vanguardia
                                                             partida.cartas[is].huecoOcupado = jp;
+                                                            // ¿Desplazas?
+                                                            if (desplaza) {
+                                                                 partida.cartas[is].volteada = true;
+                                                                 partida.cartas[is].angle = 0;
+                                                            }
                                                        }
 
                                                        // Índices
@@ -860,7 +884,7 @@ function gestionTrigger(socket, data, partida, usuario) { // Gestión del umbral
 }
 
 function gestionNuevoTurno(socket, data, partida, usuario) { // Iniciamos un nuevo turno
-     if (usuario.comenzado && usuario.mousePress && usuario.mousex > 1100-150 && usuario.mousex < 1100+150 && usuario.mousey > 518 && usuario.mousey < 518+50) {
+     if (usuario.comenzado && usuario.mousePress && usuario.mousex > 1100-150 && usuario.mousex < 1100+150 && usuario.mousey > 578 && usuario.mousey < 578+50) {
           setNuevoTurno(partida, usuario);
      }
 }
@@ -1288,23 +1312,20 @@ function crearPartida(socket, cuenta, data) {
                     if (errSelectCrearPartida) throw errSelectCrearPartida;
 
                     if (resultSelectCrearPartida.length == 0) { // Si no existe la partida, la crea, y luego simplemente cargamos las cartas al tablero desde BD
-                         con.query("select * from Cartas where cartaID in (" + getListaCartas(data.barajaID, "comas") + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
-                              if (errSelectCrearPartida2) throw errSelectCrearPartida2;
-                              var ids = getListaCartas(data.barajaID, "junto");
-                              var hcs = getHuecosInicialesCartas(0);
-                              var pvs = getPVsDeCartas(getListaCartas(data.barajaID, ""), resultSelectCrearPartida2);
-                              var angles = "";
-                              for (var i = 0; i < 31; ++i) {
-                                   angles += "090090";
-                                   pvs += "0";
-                                   hcs += "0-1";
-                                   ids += "00-1";
-                              }
-                              con.query("insert into Partidas (partidaID, partidaCreadorUsuarioID, partidaRivalUsuarioID, partidaCartasID, partidaCartasHueco, partidaCartasPV, partidaCartasAngle) values ('"
-                                   + data.partidaID + "', '" + cuenta.usuarioID + "', null, '" + ids + "', '" + hcs + "', '" + pvs + "', '" + angles + "');", (errSelectCrearPartida3, r) => {
-                                   if (errSelectCrearPartida3) throw errSelectCrearPartida3;
-                                   cargarCartas(socket, data, pvs, true, 0);
-                              });
+                         var ids = getListaCartas(data.barajaID, "junto");
+                         var hcs = getHuecosInicialesCartas(0);
+                         var pvs = getPVsDeCartas(getListaCartas(data.barajaID, ""), infoCartas);
+                         var angles = "";
+                         for (var i = 0; i < 31; ++i) {
+                              angles += "090090";
+                              pvs += "0";
+                              hcs += "0-1";
+                              ids += "00-1";
+                         }
+                         con.query("insert into Partidas (partidaID, partidaCreadorUsuarioID, partidaRivalUsuarioID, partidaCartasID, partidaCartasHueco, partidaCartasPV, partidaCartasAngle) values ('"
+                              + data.partidaID + "', '" + cuenta.usuarioID + "', null, '" + ids + "', '" + hcs + "', '" + pvs + "', '" + angles + "');", (errSelectCrearPartida3, r) => {
+                              if (errSelectCrearPartida3) throw errSelectCrearPartida3;
+                              cargarCartas(socket, data, pvs, true, 0);
                          });
                     }
                     else { // Si ya ha sido creada...
@@ -1329,20 +1350,17 @@ function crearPartida(socket, cuenta, data) {
                          }
                          // Si hay hueco para rival y no eres creador, te unes a ella y asignas tu mazo...
                          else if (resultSelectCrearPartida[0].partidaCreadorUsuarioID != cuenta.usuarioID && resultSelectCrearPartida[0].partidaRivalUsuarioID == null) {
-                              con.query("select * from Cartas where cartaID in (" + getListaCartas(data.barajaID, "comas") + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
-                                   if (errSelectCrearPartida2) throw errSelectCrearPartida2;
-                                   var ids = resultSelectCrearPartida[0].partidaCartasID.substring(0, 31*4) + getListaCartas(data.barajaID, "junto");
-                                   var hcs = resultSelectCrearPartida[0].partidaCartasHueco.substring(0, 31*3) + getHuecosInicialesCartas(nCartas/2);
-                                   var pvs = resultSelectCrearPartida[0].partidaCartasPV.substring(0, 31*1) + getPVsDeCartas(getListaCartas(data.barajaID, ""), resultSelectCrearPartida2);
-                                   var angles = resultSelectCrearPartida[0].partidaCartasAngle.substring(0, 31*3);
-                                   for (var i = 0; i < 31; ++i) {
-                                        angles += "090";
-                                   }
-                                   con.query("update Partidas set partidaRivalUsuarioID = '" + cuenta.usuarioID + "', partidaCartasID = '" + ids + "', partidaCartasHueco = '"
-                                   + hcs + "', partidaCartasPV = '" + pvs + "', partidaCartasAngle = '" + angles + "' where partidaID = '" + data.partidaID + "';", (errSelectCrearPartida3, r) => {
-                                        if (errSelectCrearPartida3) throw errSelectCrearPartida3;
-                                        cargarCartas(socket, data, pvs, false, 31);
-                                   });
+                              var ids = resultSelectCrearPartida[0].partidaCartasID.substring(0, 31*4) + getListaCartas(data.barajaID, "junto");
+                              var hcs = resultSelectCrearPartida[0].partidaCartasHueco.substring(0, 31*3) + getHuecosInicialesCartas(nCartas/2);
+                              var pvs = resultSelectCrearPartida[0].partidaCartasPV.substring(0, 31*1) + getPVsDeCartas(getListaCartas(data.barajaID, ""), infoCartas);
+                              var angles = resultSelectCrearPartida[0].partidaCartasAngle.substring(0, 31*3);
+                              for (var i = 0; i < 31; ++i) {
+                                   angles += "090";
+                              }
+                              con.query("update Partidas set partidaRivalUsuarioID = '" + cuenta.usuarioID + "', partidaCartasID = '" + ids + "', partidaCartasHueco = '"
+                              + hcs + "', partidaCartasPV = '" + pvs + "', partidaCartasAngle = '" + angles + "' where partidaID = '" + data.partidaID + "';", (errSelectCrearPartida3, r) => {
+                                   if (errSelectCrearPartida3) throw errSelectCrearPartida3;
+                                   cargarCartas(socket, data, pvs, false, 31);
                               });
                          }
                          // En cualquier otro caso muestra mensaje de que no puedes entrar a esta partida
@@ -1364,58 +1382,55 @@ function cargarCartas(socket, data, pvs, crea, iStart) {
      pool.getConnection((errCargarCartas, con) => {
           if (errCargarCartas) throw errCargarCartas;
           var arrayS = getListaCartas(data.barajaID, "comas"); // Obtenemos el array de id's de cartas, puede haber repeticiones
-          con.query("select * from Cartas where cartaID in (" + arrayS + ");", (errSelectCrearPartida2, resultSelectCrearPartida2) => {
-               // Buscamos todas las cartas. No habrá repeticiones, pero obtenemos sus datos
-               if (errSelectCrearPartida2) throw errSelectCrearPartida2;
-               iAsignaCarta = 0;
-               var array = getListaCartas(data.barajaID, ""); // Obtenemos el array de id's de cartas, puede haber repeticiones
+          // Buscamos todas las cartas. No habrá repeticiones, pero obtenemos sus datos
+          iAsignaCarta = 0;
+          var array = getListaCartas(data.barajaID, ""); // Obtenemos el array de id's de cartas, puede haber repeticiones
 
-               nuevaPartida(data, crea);
-               socket.emit('partidaIniciada');
+          nuevaPartida(data, crea);
+          socket.emit('partidaIniciada');
 
-               // Aquí la partida ya existe o ha sido creada. La buscamos y le asignamos "cargaImagenes" a true para que en su primer ciclo cargue t-odo.
-               var iPartida = -1;
-               for (var i = 0; i < nPartidas; ++i) {
-                    if (partidas[i].partidaID == data.partidaID) {
-                         iPartida = i;
-                         partidas[i].usuarios[0].cargaImagenesHuecos = 1;
-                         partidas[i].usuarios[0].cargaImagenesCartas = 1;
-                         partidas[i].usuarios[0].cargaImagenesMenus = 1;
-                         partidas[i].usuarios[1].cargaImagenesHuecos = 1;
-                         partidas[i].usuarios[1].cargaImagenesCartas = 1;
-                         partidas[i].usuarios[1].cargaImagenesMenus = 1;
+          // Aquí la partida ya existe o ha sido creada. La buscamos y le asignamos "cargaImagenes" a true para que en su primer ciclo cargue t-odo.
+          var iPartida = -1;
+          for (var i = 0; i < nPartidas; ++i) {
+               if (partidas[i].partidaID == data.partidaID) {
+                    iPartida = i;
+                    partidas[i].usuarios[0].cargaImagenesHuecos = 1;
+                    partidas[i].usuarios[0].cargaImagenesCartas = 1;
+                    partidas[i].usuarios[0].cargaImagenesMenus = 1;
+                    partidas[i].usuarios[1].cargaImagenesHuecos = 1;
+                    partidas[i].usuarios[1].cargaImagenesCartas = 1;
+                    partidas[i].usuarios[1].cargaImagenesMenus = 1;
+               }
+          }
+
+          iAsignaCarta = iStart;
+
+          // Asigna a todas las cartas de qué lado son cada usuario
+          var ind = 0;
+          if (partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != "" && partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != data.usuarioID) ind = 1;
+          for (var i = 0; i < nCartas; ++i) {
+               partidas[iPartida].cartas[i].cartaUsuario[ind].usuarioID = data.usuarioID;
+          }
+
+          for (var i = 0; i < array.length; ++i) {
+               // En base a un bucle de la lista (cartas repetidas) obtenemos los datos de la query 3 (sin repetir)
+               // Dado el cartaID del array, debemos buscar coincidencia en result2 y pasar esos datos
+               for (var j = 0; j < infoCartas.length; ++j) {
+                    if (Number(array[i]) == infoCartas[j].cartaID) {
+                         modificaCarta(partidas[iPartida],
+                              Number(array[i]), pvs.substring(i, i+1), infoCartas[j].cartaRango,
+                              infoCartas[j].cartaClase, 'sprClase' + infoCartas[j].cartaClase,
+                              'sprEspecie' + infoCartas[j].cartaEspecie, 'sprElemento' + infoCartas[j].cartaElemento
+                         );
+                         break;
                     }
                }
+          }
 
-               iAsignaCarta = iStart;
-
-               // Asigna a todas las cartas de qué lado son cada usuario
-               var ind = 0;
-               if (partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != "" && partidas[iPartida].cartas[0].cartaUsuario[0].usuarioID != data.usuarioID) ind = 1;
-               for (var i = 0; i < nCartas; ++i) {
-                    partidas[iPartida].cartas[i].cartaUsuario[ind].usuarioID = data.usuarioID;
-               }
-
-               for (var i = 0; i < array.length; ++i) {
-                    // En base a un bucle de la lista (cartas repetidas) obtenemos los datos de la query 3 (sin repetir)
-                    // Dado el cartaID del array, debemos buscar coincidencia en result2 y pasar esos datos
-                    for (var j = 0; j < resultSelectCrearPartida2.length; ++j) {
-                         if (Number(array[i]) == resultSelectCrearPartida2[j].cartaID) {
-                              modificaCarta(partidas[iPartida],
-                                   Number(array[i]), pvs.substring(i, i+1), resultSelectCrearPartida2[j].cartaRango,
-                                   resultSelectCrearPartida2[j].cartaClase, 'sprClase' + resultSelectCrearPartida2[j].cartaClase,
-                                   'sprEspecie' + resultSelectCrearPartida2[j].cartaEspecie, 'sprElemento' + resultSelectCrearPartida2[j].cartaElemento
-                              );
-                              break;
-                         }
-                    }
-               }
-
-               // Nos asignamos los huecos
-               for (var j = 0; j < nHuecos; ++j) {
-                    partidas[iPartida].huecos[j].huecoUsuario[ind].usuarioID = data.usuarioID;
-               }
-          });
+          // Nos asignamos los huecos
+          for (var j = 0; j < nHuecos; ++j) {
+               partidas[iPartida].huecos[j].huecoUsuario[ind].usuarioID = data.usuarioID;
+          }
      });
 }
 
@@ -1511,6 +1526,13 @@ function isSesionActiva(usuarioID, usuarioPass, partidaID) {
                }
                return false;
           }
+     }
+     return false;
+}
+
+function isSesionActivaSoloUsuario(usuarioID, usuarioPass) {
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID && sesiones[i].usuarioPass == usuarioPass) return true;
      }
      return false;
 }
