@@ -4,6 +4,7 @@
 
 // Gestión de variables en sockets
 var usuarioID = "", usuarioPass = "", partidaID = ""; // Variables de sesión que serán enviadas y validadas en servidor para verificar tus inputs
+var usuarioRivalID = "", usuarioRivalCont = 0, usuarioRivalPartidaID = "", usuarioRivalPartidaCont = 0; // Vacío, o informado si está conectado
 
 // Variables de control del programa
 var canvas = null; // canvas sobre el que trabajaremos
@@ -283,7 +284,7 @@ $(function(){
 	var sectionPartidas = $('#sectionPartidas');
 
      //############################################################################################################################################################################################################################
-     //#################################### ENVIAR SEÑALES AL SERVIDOR PARA LA LÓGICA ###################################################################################################################################################################
+     //#################################### INTERCAMBIO DE SEÑALES PARA LA LÓGICA ###################################################################################################################################################################
      //############################################################################################################################################################################################################################
 
 	// Hacemos click
@@ -362,10 +363,22 @@ $(function(){
 		nuevoMensaje(data.mid, data.desc);
 	});
 
+	socket.on('isOnline', (data) => { // Nos llega un emit que nos dice que X usuario está online. ¿Nos afecta?
+		usuarioRivalID = data.usuarioRivalID;
+		usuarioRivalCont = 60;
+	});
+
+	socket.on('isInGame', (data) => {
+		usuarioRivalPartidaID = data.usuarioRivalPartidaID;
+		usuarioRivalPartidaCont = 60;
+	});
+
      // Bucle main
      setInterval(main, 16);
 
      function main() {
+		socket.emit('isOnline', {usuarioID:usuarioID, usuarioPass:usuarioPass});
+
 		if (loginScreen) {
 			mainAux(null);
 		}
@@ -375,7 +388,7 @@ $(function(){
      }
 
 	//############################################################################################################################################################################################################################
-     //#################################### RECIBIR SEÑALES PARA MOSTRAR DATOS ###################################################################################################################################################################
+     //#################################### RECIBIR SEÑALES PARA MOSTRAR DATOS Y BUCLE PRINCIPAL ###################################################################################################################################################################
      //############################################################################################################################################################################################################################
 
 	socket.on('cargarImagenesHuecos', (data) => {
@@ -496,6 +509,16 @@ $(function(){
 				modoDesplazamientoAlphaRight = 1;
 			}
 		}
+
+		// ¿El rival está conectado?
+		usuarioRivalCont = Math.max(usuarioRivalCont-1, 0);
+		if (usuarioRivalCont == 0) {
+			usuarioRivalID = "";
+		}
+		usuarioRivalPartidaCont = Math.max(usuarioRivalPartidaCont-1, 0);
+		if (usuarioRivalPartidaCont == 0) {
+			usuarioRivalPartidaID = "";
+		}
 	}
 
 	function gestionMensajes() { // Los mensajes de información y restricción que aparecen arriba
@@ -583,9 +606,9 @@ $(function(){
 	}
 
 	function drawSistema(data) {
-	     ctx.fillStyle = "rgba(255, 255, 255, 1)";
-	     ctx.font = 14*res + "px Georgia";
-	     ctx.fillText("Núm. Ejército rival = " + data.nEjercitoRival, (1220+data.xCampo)*res, 710*res);
+	     ctx.fillStyle = "rgba(0, 0, 0, 1)";
+	     ctx.font = "bold " + 14*res + "px Georgia";
+	     ctx.fillText("Núm. Ejército rival = " + data.nEjercitoRival, (50+data.xCampo)*res, 710*res);
 	}
 
 	function drawSwapLimbo(data) {
@@ -595,7 +618,7 @@ $(function(){
 		else if (data.sprLimboBoton == "sprLimboBotonOff") img = spLimboBotonOff;
 		else if (data.sprLimboBoton == "sprLimboBotonOnS") img = spLimboBotonOnS;
 		else img = spLimboBotonOffS;
-	     ctx.drawImage(img, (1164+data.xCampo)*res, 517*res, 25*res, 75*res);
+	     ctx.drawImage(img, (1877+data.xCampo)*res, 517*res, 25*res, 75*res);
 		resetAlphaParte();
 	}
 
@@ -617,9 +640,11 @@ $(function(){
 	               var yf = 0;
 
 	               setAlphaParte(cartaUsuario.y, mousey);
-				if (cartaUsuario.x-data.xCampo <= leftDivision) setAlphaModoDesplazamiento(data, -1, ctx.globalAlpha);
-				else if (cartaUsuario.x-data.xCampo >= rightDivision) setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
-				else setAlphaModoDesplazamiento(data, 0, ctx.globalAlpha);
+				if (!cartaUsuario.pulsada) {
+					if (cartaUsuario.x-data.xCampo <= leftDivision) setAlphaModoDesplazamiento(data, -1, ctx.globalAlpha);
+					else if (cartaUsuario.x-data.xCampo >= rightDivision) setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
+					else setAlphaModoDesplazamiento(data, 0, ctx.globalAlpha);
+				}
 
 	               // Dibuja la carta
 	               drawImageRotateTwo(dib, spSinPV, getAnglePorLado(data, i, 90), xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
@@ -675,6 +700,11 @@ $(function(){
 	          if (data.car[i].huecoOcupado >= 0) {
 				var cartaUsuario = getCartaUsuario(data.car[i], data.usuarioID);
 	               setAlphaParte(cartaUsuario.y, mousey);
+				if (!cartaUsuario.pulsada) {
+					if (cartaUsuario.x-data.xCampo <= leftDivision) setAlphaModoDesplazamiento(data, -1, ctx.globalAlpha);
+					else if (cartaUsuario.x-data.xCampo >= rightDivision) setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
+					else setAlphaModoDesplazamiento(data, 0, ctx.globalAlpha);
+				}
 
 	               // Los offsets
 	               var xf = offset*(!data.hue[data.car[i].huecoOcupado].vert);
@@ -688,7 +718,6 @@ $(function(){
 	                         ctx.drawImage(spPVB, (cartaUsuario.x+cartaWidth-16 - j*8+xf)*res, (cartaUsuario.y+cartaHeight-12+yf)*res);
 	                    }
 	               }
-
 				// Si esta carta está seleccionada, obtenemos su imagen
 				if (cartaUsuario.seleccionada) {
 					spCartaDraw = cartasDraw[i];
@@ -708,18 +737,50 @@ $(function(){
 	     //ctx.drawImage(spFondoDerechaMitad, 1280-360, 0);
 
 	     // La carta gigante
-		ctx.drawImage(spCartaDraw, 940*res, 20*res, 320*res, 450*res);
+		ctx.drawImage(spCartaDraw, 940*res, 120*res, 320*res, 450*res);
 
 	     // Los PV de la carta gigante
 	     for (var i = 0; i < nCartas; ++i) {
 	          if (data.car[i].huecoOcupado >= 0) {
 				var cartaUsuario = getCartaUsuario(data.car[i], data.usuarioID);
 	               if (cartaUsuario.seleccionada && !data.hue[data.car[i].huecoOcupado].vert) for (var j = 0; j < data.car[i].pvmax; ++j) {
-	                    if (j < data.car[i].pv) ctx.drawImage(spPVL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
-	                    else ctx.drawImage(spPVBL, (1178 - j*33)*res, 35*res, 33*res, 21*res);
+	                    if (j < data.car[i].pv) ctx.drawImage(spPVL, (1178 - j*33)*res, 135*res, 33*res, 21*res);
+	                    else ctx.drawImage(spPVBL, (1178 - j*33)*res, 135*res, 33*res, 21*res);
 	               }
 	          }
 	     }
+
+		// Usuarios conectados
+		ctx.font = 18*res + "px Georgia";
+
+		if (data.usuarioRivalID == usuarioRivalID) {
+			if (usuarioRivalID != "") {
+				ctx.fillStyle = "rgba(255, 255, 255, 1)";
+				ctx.fillText("Rival:", 950*res, 40*res);
+			}
+			ctx.fillStyle = "rgba(128, 128, 128, 1)";
+			ctx.fillText(data.usuarioRivalID, 1010*res, 40*res);
+		}
+
+		ctx.fillStyle = "rgba(255, 255, 255, 1)";
+		ctx.fillText("Tú:", 950*res, 80*res);
+		ctx.fillStyle = "rgba(128, 128, 128, 1)";
+		ctx.fillText(usuarioID, 1010*res, 80*res);
+		ctx.fillStyle = "rgba(0, 255, 0, 1)";
+		ctx.fillText("EN LÍNEA", 1110*res, 80*res);
+
+		var estadoRival = "DESCONECTADO";
+		ctx.fillStyle = "rgba(255, 0, 0, 1)";
+		if (usuarioRivalID != "" && data.usuarioRivalID == usuarioRivalID) {
+			estadoRival = "EN LÍNEA";
+	          ctx.fillStyle = "rgba(255, 128, 0, 1)";
+
+			if (usuarioRivalPartidaID != "" && partidaID == usuarioRivalPartidaID) {
+				estadoRival = "JUGANDO AQUÍ";
+		          ctx.fillStyle = "rgba(0, 255, 0, 1)";
+			}
+			ctx.fillText(estadoRival, 1110*res, 40*res);
+		}
 	}
 
 	function drawMenu(data) { // Dibujamos el menú de las cartas
@@ -756,8 +817,7 @@ $(function(){
 	          // El umbral de Trigger numérico
 	          ctx.font = 20*res + "px Georgia";
 	          ctx.fillStyle = "white";
-	          ctx.fillText("Umbral de Trigger = "+data.umbralTrigger, 1050*res, 610*res);
-	          ctx.fillText("Trigger total generado = "+data.triggerGenerado, 1017*res, 635*res);
+	          ctx.fillText("Umbral de Trigger = " + data.triggerGenerado + " / " + data.umbralTrigger, 980*res, 640*res);
 
 	          // El Trigger total
 	          ctx.drawImage(spTrigger, 880*res, 640*res, 400*res, 80*res);
@@ -804,7 +864,7 @@ $(function(){
 
 	          ctx.font = 20*res + "px Georgia";
 	          ctx.fillStyle = "white";
-	          ctx.fillText("Iniciar Turno", 1040*res, 550*res);
+	          ctx.fillText("Iniciar Turno", 1040*res, 610*res);
 	     }
 	}
 
