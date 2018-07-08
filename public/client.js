@@ -17,8 +17,16 @@ var clasesAngle = 0; // Ángulo del círculo de clases
 var huecoTriggerAng = 0; // El icono del Trigger en los huecos
 var huecoTriggerSize = 1; // Iconos palpitantes de Trigger en huecos
 var nuevoTurnoAngle = 0; // Ángulo para nuevo turno
-var nHuecos = 1+2*(4+2+4)+5+5+6*10+8*3*2+4*2*2;
-var nCartas = 31+31;
+var nHuecos = 1+2*(4+2+4)+5+5+6*10+8*3*2+4*2*2; // Número de huecos
+var nCartas = 31+31; // Número de cartas
+var yLimite = 405; // Coordenada vertical donde cambia la región de transparencia
+var leftDivision = 700; // Division entre la Puerta y el lado izquierdo
+var rightDivision = 1140; // Division entre la Puerta y el lado derecho
+var huecoAlphaUp = 0; // El alpha de la zona seleccionada del campo de arriba
+var huecoAlphaDown = 0; // El alpha de la zona seleccionada del campo de abajo
+var modoDesplazamientoAlphaLeft = 0; // Alphas
+var modoDesplazamientoAlphaMid = 0; // Alphas
+var modoDesplazamientoAlphaRight = 0; // Alphas
 
 var huecosDraw = new Array(); // Las imágenes
 for (var i = 0; i < nHuecos; ++i) {
@@ -397,11 +405,9 @@ $(function(){
 
 	function mainAux(data) {
 		// Lógica
-		if (data != null) {
-			gestionClases(data);
-		}
-		gestionSistema();
+		gestionSistema(data);
 		gestionMensajes();
+		gestionClases(data);
 
 		// Dibujo
 		if (data != null) {
@@ -422,7 +428,7 @@ $(function(){
 	//#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
 	//############################################################################################################################################################################################################################
 
-	function gestionSistema() {
+	function gestionSistema(data) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillStyle = "rgba(255, 255, 255, 1)";
 
@@ -451,8 +457,6 @@ $(function(){
 	     huecoTriggerAng = angular(huecoTriggerAng+1);
 	     huecoTriggerSize = 50*(1+Math.cos(huecoTriggerAng*Math.PI/180)/2);
 
-
-
 		// Botón de Nuevo Turno
 		spNuevoTurno.src = sprNuevoTurnoB;
 
@@ -464,6 +468,34 @@ $(function(){
                if (nuevoTurnoAngle != 0 && nuevoTurnoAngle != 180) nuevoTurnoAngle = angular(nuevoTurnoAngle+5);
                if (nuevoTurnoAngle == 180) nuevoTurnoAngle = 0;
           }
+
+		// Alpha de los huecos y cartas
+		if (mousey > yLimite) {
+			huecoAlphaDown = tiendeAX(huecoAlphaDown, 1, 0.1);
+			huecoAlphaUp = tiendeAX(huecoAlphaUp, 0.25, 0.1);
+		}
+		else {
+			huecoAlphaDown = tiendeAX(huecoAlphaDown, 0.25, 0.1);
+			huecoAlphaUp = tiendeAX(huecoAlphaUp, 1, 0.1);
+		}
+
+		// Alphas de los modos de desplazamiento
+		if (data != null) {
+			if (data.modoDesplazamiento == 2) {
+				var vl = 0, vm = 0, vr = 0;
+				if (data.ladoDesplazamiento == -1) vl = 1;
+				else if (data.ladoDesplazamiento == 0) vm = 1;
+				else if (data.ladoDesplazamiento == 1) vr = 1;
+				modoDesplazamientoAlphaLeft = tiendeAX(modoDesplazamientoAlphaLeft, vl, 0.05);
+				modoDesplazamientoAlphaMid = tiendeAX(modoDesplazamientoAlphaMid, vm, 0.05);
+				modoDesplazamientoAlphaRight = tiendeAX(modoDesplazamientoAlphaRight, vr, 0.05);
+			}
+			else {
+				modoDesplazamientoAlphaLeft = 1;
+				modoDesplazamientoAlphaMid = 1;
+				modoDesplazamientoAlphaRight = 1;
+			}
+		}
 	}
 
 	function gestionMensajes() { // Los mensajes de información y restricción que aparecen arriba
@@ -480,20 +512,22 @@ $(function(){
 	}
 
 	function gestionClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
-	     if (mousex > data.xCampo+967-clasesSize/2 && mousex < data.xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
-	          clasesSize = Math.min(clasesSize+1, 250);
-	     }
-	     else {
-	          clasesSize = Math.max(clasesSize-1, 40);
-	     }
+		if (data != null) {
+		     if (mousex > data.xCampo+967-clasesSize/2 && mousex < data.xCampo+967+clasesSize/2 && mousey > 587-clasesSize/2 && mousey < 587+clasesSize/2) {
+		          clasesSize = Math.min(clasesSize+1, 250);
+		     }
+		     else {
+		          clasesSize = Math.max(clasesSize-1, 40);
+		     }
 
-	     if (clasesSize > 40) {
-	          spClases.src = sprClasesS;
-	          clasesAngle = angular(clasesAngle+2);
-	     }
-	     else {
-	          spClases.src = sprClases;
-	     }
+		     if (clasesSize > 40) {
+		          spClases.src = sprClasesS;
+		          clasesAngle = angular(clasesAngle+2);
+		     }
+		     else {
+		          spClases.src = sprClases;
+		     }
+		}
 	}
 
 	//############################################################################################################################################################################################################################
@@ -502,15 +536,16 @@ $(function(){
 
 	function drawCampo(data) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.fillStyle = "rgba(255, 255, 255, 1)";
+		ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
           // El fondo del campo con las zonas
-          ctx.drawImage(spFondoNucleos, (18+data.xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoParamos, (370+data.xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoPuerta, (726+data.xCampo)*res, 0, 480*res, 720*res);
-	     ctx.drawImage(spFondoRuinas, (1200+data.xCampo)*res, 0, 350*res, 720*res);
-	     ctx.drawImage(spFondoPozos, (1550+data.xCampo)*res, 0, 350*res, 720*res);
+          setAlphaModoDesplazamiento(data, -1, 1); ctx.drawImage(spFondoNucleos, (18+data.xCampo)*res, 0, 350*res, 720*res);
+	     setAlphaModoDesplazamiento(data, -1, 1); ctx.drawImage(spFondoParamos, (370+data.xCampo)*res, 0, 350*res, 720*res);
+	     setAlphaModoDesplazamiento(data, 0, 1); ctx.drawImage(spFondoPuerta, (726+data.xCampo)*res, 0, 480*res, 720*res);
+	     setAlphaModoDesplazamiento(data, 1, 1); ctx.drawImage(spFondoRuinas, (1200+data.xCampo)*res, 0, 350*res, 720*res);
+	     setAlphaModoDesplazamiento(data, 1, 1); ctx.drawImage(spFondoPozos, (1550+data.xCampo)*res, 0, 350*res, 720*res);
 
+		resetAlphaParte();
 	     ctx.drawImage(spFondoSep, (360+data.xCampo)*res, 0, 40*res, 720*res);
 	     ctx.drawImage(spFondoSep, (710+data.xCampo)*res, 0, 40*res, 720*res);
 	     ctx.drawImage(spFondoSep, (1178+data.xCampo)*res, 0, 40*res, 720*res);
@@ -520,6 +555,9 @@ $(function(){
 	     for (var j = 0; j < nHuecos; ++j) {
 			var huecoUsuario = getHuecoUsuario(data.hue[j], data.usuarioID);
 	          setAlphaParte(huecoUsuario.y, mousey);
+			if (huecoUsuario.xstart <= leftDivision) setAlphaModoDesplazamiento(data, -1, ctx.globalAlpha);
+			else if (huecoUsuario.xstart >= rightDivision) setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
+			else setAlphaModoDesplazamiento(data, 0, ctx.globalAlpha);
 
                var image = huecosDraw[j];
 
@@ -551,12 +589,14 @@ $(function(){
 	}
 
 	function drawSwapLimbo(data) {
+		setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
 		var img = new Image();
 		if (data.sprLimboBoton == "sprLimboBotonOn") img = spLimboBotonOn;
 		else if (data.sprLimboBoton == "sprLimboBotonOff") img = spLimboBotonOff;
 		else if (data.sprLimboBoton == "sprLimboBotonOnS") img = spLimboBotonOnS;
 		else img = spLimboBotonOffS;
 	     ctx.drawImage(img, (1164+data.xCampo)*res, 517*res, 25*res, 75*res);
+		resetAlphaParte();
 	}
 
      function drawCartas(data) {
@@ -577,6 +617,9 @@ $(function(){
 	               var yf = 0;
 
 	               setAlphaParte(cartaUsuario.y, mousey);
+				if (cartaUsuario.x-data.xCampo <= leftDivision) setAlphaModoDesplazamiento(data, -1, ctx.globalAlpha);
+				else if (cartaUsuario.x-data.xCampo >= rightDivision) setAlphaModoDesplazamiento(data, 1, ctx.globalAlpha);
+				else setAlphaModoDesplazamiento(data, 0, ctx.globalAlpha);
 
 	               // Dibuja la carta
 	               drawImageRotateTwo(dib, spSinPV, getAnglePorLado(data, i, 90), xo+cartaWidth/2, yo+cartaHeight/2, xf, yf, cartaWidth, cartaHeight, cartaWidth/2, cartaHeight/2);
@@ -619,7 +662,9 @@ $(function(){
 
 	function drawClases(data) { // El círculo giratorio central para mostrar las clases al pasar por encima
 		// El círculo rotatorio pequeño
-		drawImageRotate(spClases, clasesAngle, 967 + data.xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
+		if (data.comenzado) {
+			setAlphaModoDesplazamiento(data, 0, 1); drawImageRotate(spClases, clasesAngle, 967 + data.xCampo, 587, 0, 0, clasesSize, clasesSize, clasesSize/2, clasesSize/2);
+		}
 	}
 
 	function drawCampoComeback(data) { // Muestra el lado derecho del campo
@@ -785,9 +830,18 @@ $(function(){
           drawImageRotate(icono, angle, positionX, positionY, xoffset, yoffset, width, height, axisX, axisY);
      }
 
-     function setAlphaParte(y, my) {
-          var yl = 405;
-          ctx.globalAlpha = 0.25 + 0.75*((y > yl && my > yl) || (y <= yl && my <= yl));
+     function setAlphaParte(y) {
+		if (y > yLimite) ctx.globalAlpha = huecoAlphaDown;
+		else ctx.globalAlpha = huecoAlphaUp;
+     }
+
+	function setAlphaModoDesplazamiento(data, lado, alphaMax) {
+		if (data.modoDesplazamiento == 2) {
+			if (lado == -1) ctx.globalAlpha = Math.min(alphaMax, modoDesplazamientoAlphaLeft);
+			else if (lado == 0) ctx.globalAlpha = Math.min(alphaMax, modoDesplazamientoAlphaMid);
+			else if (lado == 1) ctx.globalAlpha = Math.min(alphaMax, modoDesplazamientoAlphaRight);
+		}
+		else ctx.globalAlpha = 1;
      }
 
      function resetAlphaParte() {
@@ -831,6 +885,12 @@ $(function(){
           while (ang < 0) ang += 360;
           return ang;
      }
+
+	function tiendeAX(value, x, inc) {
+	     if (value < x) return Math.min(value+inc, x);
+	     else if (value > x) return Math.max(value-inc, x);
+	     else return value;
+	}
 
      function angleDifference(x, y) {
           var a = x*Math.PI/180;
