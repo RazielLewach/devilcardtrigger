@@ -24,12 +24,11 @@ pool.getConnection((errStart, con) => {
      console.log("¡Conectado a la base de datos!");
 
      // Gestiones de tablas
-     con.query("drop table if exists Cartas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Cartas ha sido borrada");});
-     con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
-     con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
+     //con.query("drop table if exists Partidas;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Partidas ha sido borrada");});
+     //con.query("drop table if exists Usuarios;", function (errDrop) {if (errDrop) throw errDrop; console.log("La tabla de Usuarios ha sido borrada");});
 
-     con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
-     con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
+     //con.query("create table if not exists Usuarios (usuarioID varchar(50) not null, usuarioPass varchar(50) not null, primary key (usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Usuarios ha sido creada");});
+     //con.query("create table if not exists Partidas (partidaID varchar(50) not null, partidaCreadorUsuarioID varchar(50) not null, partidaRivalUsuarioID varchar(50), partidaCartasID varchar(248) not null, partidaCartasHueco varchar(186) not null, partidaCartasPV varchar(62) not null, partidaCartasAngle varchar(186) not null, primary key (partidaID), foreign key (partidaCreadorUsuarioID) references Usuarios(usuarioID), foreign key (partidaRivalUsuarioID) references Usuarios(usuarioID));", function (errCreate) {if (errCreate) throw errCreate; console.log("La tabla de Partidas ha sido creada");});
 
      con.release();
 });
