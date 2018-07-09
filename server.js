@@ -353,7 +353,7 @@ io.on('connection', (socket) => {
 
      socket.on('isOnline', (data) => {
           // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
-          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, cuenta, data);
+          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, data, data);
           else doFromUsuario(isOnline, socket, data);
      });
 });
@@ -363,7 +363,7 @@ io.on('connection', (socket) => {
 //############################################################################################################################################################################################################################
 
 function isOnline(socket, cuenta, data) {
-     if (cuenta.usuarioPass == data.usuarioPass) {
+     if (cuenta != null && cuenta.usuarioPass == data.usuarioPass) {
           socket.broadcast.emit('isOnline', {usuarioRivalID:data.usuarioID});
      }
 }
