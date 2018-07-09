@@ -753,21 +753,17 @@ $(function(){
 		// Usuarios conectados
 		ctx.font = 18*res + "px Georgia";
 
-		if (data.usuarioRivalID == usuarioRivalID) {
-			if (usuarioRivalID != "") {
-				ctx.fillStyle = "rgba(255, 255, 255, 1)";
-				ctx.fillText("Rival:", 950*res, 40*res);
-			}
-			ctx.fillStyle = "rgba(128, 128, 128, 1)";
-			ctx.fillText(data.usuarioRivalID, 1010*res, 40*res);
-		}
+		ctx.fillStyle = "rgba(255, 255, 255, 1)";
+		ctx.fillText("Rival:", 950*res, 40*res);
+		ctx.fillStyle = "rgba(128, 128, 128, 1)";
+		ctx.fillText(data.usuarioRivalID, 1010*res, 40*res);
 
 		ctx.fillStyle = "rgba(255, 255, 255, 1)";
 		ctx.fillText("Tú:", 950*res, 80*res);
 		ctx.fillStyle = "rgba(128, 128, 128, 1)";
 		ctx.fillText(usuarioID, 1010*res, 80*res);
 		ctx.fillStyle = "rgba(0, 255, 0, 1)";
-		ctx.fillText("EN LÍNEA", 1110*res, 80*res);
+		ctx.fillText("EN ESTA PARTIDA", 1110*res, 80*res);
 
 		var estadoRival = "DESCONECTADO";
 		ctx.fillStyle = "rgba(255, 0, 0, 1)";
@@ -776,11 +772,11 @@ $(function(){
 	          ctx.fillStyle = "rgba(255, 128, 0, 1)";
 
 			if (usuarioRivalPartidaID != "" && partidaID == usuarioRivalPartidaID) {
-				estadoRival = "JUGANDO AQUÍ";
+				estadoRival = "EN ESTA PARTIDA";
 		          ctx.fillStyle = "rgba(0, 255, 0, 1)";
 			}
-			ctx.fillText(estadoRival, 1110*res, 40*res);
 		}
+		ctx.fillText(estadoRival, 1110*res, 40*res);
 	}
 
 	function drawMenu(data) { // Dibujamos el menú de las cartas
