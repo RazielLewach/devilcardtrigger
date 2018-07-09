@@ -73,6 +73,8 @@ function obSesion() {
      this.usuarioID = ""; // El usuarioID de la sesión
      this.usuarioPass = ""; // El usuarioPass de la sesión
      this.cont = 0; // Contador de tiempo que tu sesión permanece iniciada
+     this.bloqueada = 0; // ¿El usuario está bloqueado? Sobretodo para que las autollamadas no bloqueen
+     this.intentosFallidos = 0; // Numero de logins fallidos
      this.modoDesplazamiento = 2; // Cómo desplazas el campo con el mouse
 }
 
@@ -320,41 +322,39 @@ io.on('connection', (socket) => {
           var dataAux = data;
           dataAux.mousePress = true;
           if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMousePress, socket, data);
-          else doFromUsuarioYPartida(setMousePress, socket, dataAux);
      });
 
      socket.on('mouseRelease', (data) => {
           var dataAux = data;
           dataAux.mouseRelease = true;
           if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseRelease, socket, data);
-          else doFromUsuarioYPartida(setMouseRelease, socket, dataAux);
      });
 
      socket.on('mouseMove', (data) => {
           if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(setMouseMove, socket, data);
-          else doFromUsuarioYPartida(setMouseMove, socket, data);
      });
 
      // Iniciamos sesión o registramos el usuario
      socket.on('iniciarSesion', (data) => {
-          doFromUsuario(iniciarSesion, socket, data);
+          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) iniciarSesion(socket, data, data);
+          else if (!isSesionBloqueada(data.usuarioID)) doFromUsuario(iniciarSesion, socket, data);
      });
 
      // Crear partida
      socket.on('crearPartida', (data) => {
-          doFromUsuario(crearPartida, socket, data);
+          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) crearPartida(socket, data, data);
+          else if (!isSesionBloqueada(data.usuarioID)) doFromUsuario(crearPartida, socket, data);
      });
 
      socket.on('main', (data) => {
           // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
           if (isSesionActiva(data.usuarioID, data.usuarioPass, data.partidaID)) continueFromUsuarioYPartidaChecked(mainAfterSettings, socket, data);
-          else doFromUsuarioYPartida(mainAfterSettings, socket, data);
+          else if (!isSesionBloqueada(data.usuarioID)) doFromUsuarioYPartida(mainAfterSettings, socket, data);
      });
 
      socket.on('isOnline', (data) => {
           // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
           if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, data, data);
-          else doFromUsuario(isOnline, socket, data);
      });
 });
 
@@ -440,6 +440,11 @@ function gestionSistema(socket, data, partida, usuario) { // Ajustes varios
           else usuario.gradualDesplazamiento = Math.max(usuario.gradualDesplazamiento-0.55, 0);
 
           usuario.xCampo = tiendeAX(usuario.xCampo, -510 -490*usuario.ladoDesplazamiento, usuario.gradualDesplazamiento);
+     }
+
+     // La cuenta bloqueada?
+     for (var i = 0; i < sesiones.length; ++i) {
+          sesiones[i].bloqueada = Math.max(sesiones[i].bloqueada-1, 0);
      }
 }
 
@@ -1263,7 +1268,9 @@ function doFromUsuario(func, socket, data) {
           con.query("select * from Usuarios where usuarioID = '" + data.usuarioID + "';", (errSelectDoFromUsuario, resultSelectDoFromUsuario) => {
                if (errSelectDoFromUsuario) throw errSelectDoFromUsuario;
                var cuenta = null;
-               if (resultSelectDoFromUsuario.length > 0) cuenta = resultSelectDoFromUsuario[0];
+               if (resultSelectDoFromUsuario.length > 0) {
+                    cuenta = resultSelectDoFromUsuario[0];
+               }
                func(socket, cuenta, data);
           });
           con.release();
@@ -1277,6 +1284,7 @@ function iniciarSesion(socket, cuenta, data) {
           if (cuenta.usuarioPass == data.usuarioPass) {
                socket.emit('login');
                socket.emit('nuevoMensaje', {mid:1000, desc:null});
+               setSesion(data.usuarioID, data.usuarioPass);
 
                // Mostramos las partidas del usuario
                pool.getConnection((errIniciarSesion, con) => {
@@ -1290,7 +1298,10 @@ function iniciarSesion(socket, cuenta, data) {
                     con.release();
                });
           }
-          else socket.emit('nuevoMensaje', {mid:1001, desc:null});
+          else {
+               addIntentoFallido(data.usuarioID, data.usuarioPass);
+               socket.emit('nuevoMensaje', {mid:1001, desc:null});
+          }
      }
      // Registramos la cuenta
      else {
@@ -1333,6 +1344,7 @@ function crearPartida(socket, cuenta, data) {
                          // Si eres creador o rival, simplemente cargamos las cartas al tablero desde BD
                          if (resultSelectCrearPartida[0].partidaCreadorUsuarioID == cuenta.usuarioID || resultSelectCrearPartida[0].partidaRivalUsuarioID == cuenta.usuarioID) {
                               socket.emit('partidaIniciada');
+                              setSesion(data.usuarioID, data.usuarioPass);
 
                               for (var i = 0; i < nPartidas; ++i) {
                                    if (partidas[i].partidaID == data.partidaID) {
@@ -1375,7 +1387,10 @@ function crearPartida(socket, cuenta, data) {
           });
      }
      // Usuario incorrecto, no puede crear una Partida
-     else socket.emit('nuevoMensaje', {mid:1003, desc:null});
+     else {
+          addIntentoFallido(data.usuarioID, data.usuarioPass);
+          socket.emit('nuevoMensaje', {mid:1003, desc:null});
+     }
 }
 
 // Cargamos las cartas de base de datos al campo. Ocurre tanto al crearlo como en cada cargada
@@ -1389,6 +1404,7 @@ function cargarCartas(socket, data, pvs, crea, iStart) {
 
           nuevaPartida(data, crea);
           socket.emit('partidaIniciada');
+          setSesion(data.usuarioID, data.usuarioPass);
 
           // Aquí la partida ya existe o ha sido creada. La buscamos y le asignamos "cargaImagenes" a true para que en su primer ciclo cargue t-odo.
           var iPartida = -1;
@@ -1536,6 +1552,24 @@ function isSesionActivaSoloUsuario(usuarioID, usuarioPass) {
           if (sesiones[i].usuarioID == usuarioID && sesiones[i].usuarioPass == usuarioPass) return true;
      }
      return false;
+}
+
+function isSesionBloqueada(usuarioID) {
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID) return sesiones[i].bloqueada > 0;
+     }
+     return false;
+}
+
+function addIntentoFallido(usuarioID, usuarioPass) {
+     for (var i = 0; i < sesiones.length; ++i) {
+          if (sesiones[i].usuarioID == usuarioID && sesiones[i].usuarioPass != usuarioPass) {
+               ++sesiones[i].intentosFallidos;
+               if (sesiones[i].intentosFallidos >= 5) sesiones[i].bloqueada = 60*60*10; // Se bloquea durante 10 minutos
+               break;
+          }
+     }
+     return true;
 }
 
 // TODO hacer mét-odo para almacenar de la estructura partidas y usuarios hacia base de datos, y otro para traerlas de vuelta.
