@@ -375,10 +375,9 @@ $(function(){
 
      // Bucle main
      setInterval(main, 16);
+	setInterval(isOnline, 400);
 
      function main() {
-		socket.emit('isOnline', {usuarioID:usuarioID, usuarioPass:usuarioPass});
-
 		if (loginScreen) {
 			mainAux(null);
 		}
@@ -386,6 +385,10 @@ $(function(){
           	socket.emit('main', {usuarioID:usuarioID, usuarioPass:usuarioPass, partidaID:partidaID});
 		}
      }
+
+	function isOnline() {
+		socket.emit('isOnline', {usuarioID:usuarioID, usuarioPass:usuarioPass});
+	}
 
 	//############################################################################################################################################################################################################################
      //#################################### RECIBIR SEÑALES PARA MOSTRAR DATOS Y BUCLE PRINCIPAL ###################################################################################################################################################################
