@@ -76,6 +76,7 @@ function obSesion() {
      this.bloqueada = 0; // ¿El usuario está bloqueado? Sobretodo para que las autollamadas no bloqueen
      this.intentosFallidos = 0; // Numero de logins fallidos
      this.modoDesplazamiento = 2; // Cómo desplazas el campo con el mouse
+     this.contInGame = 0; // Contador para enviar la señal de que estamos en juego
 }
 
 // Gestionamos múltiples partidas a la vez
@@ -354,7 +355,7 @@ io.on('connection', (socket) => {
 
      socket.on('isOnline', (data) => {
           // Si la sesión está activa vamos directo al main sin validar usuario. De lo contrario, pasamos a validar con base de datos
-          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, data, data);
+          if (isSesionActivaSoloUsuario(data.usuarioID, data.usuarioPass)) isOnline(socket, data);
      });
 });
 
@@ -362,16 +363,18 @@ io.on('connection', (socket) => {
 //#################################### FUNCIONES DE LÓGICA ##############################################################################################################################################################
 //############################################################################################################################################################################################################################
 
-function isOnline(socket, cuenta, data) {
-     if (cuenta != null && cuenta.usuarioPass == data.usuarioPass) {
-          socket.broadcast.emit('isOnline', {usuarioRivalID:data.usuarioID});
-     }
+function isOnline(socket, data) {
+     socket.broadcast.emit('isOnline', {usuarioRivalID:data.usuarioID});
 }
 
 function mainAfterSettings(socket, partida, usuario, data) {
      if (partida != null && usuario != null) {
           var sesion = getSesion(data.usuarioID);
-          socket.broadcast.emit('isInGame', {usuarioRivalPartidaID:partida.partidaID});
+          sesion.contInGame = Math.max(sesion.contInGame-1, 0);
+          if (sesion.contInGame == 0) {
+               socket.broadcast.emit('isInGame', {usuarioRivalID:data.usuarioID, usuarioRivalPartidaID:partida.partidaID});
+               sesion.contInGame = 60;
+          }
 
           gestionSistema(socket, data, partida, usuario);
           gestionHuecos(socket, data, partida, usuario);
