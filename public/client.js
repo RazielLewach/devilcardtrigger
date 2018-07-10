@@ -365,17 +365,19 @@ $(function(){
 
 	socket.on('isOnline', (data) => { // Nos llega un emit que nos dice que X usuario está online. ¿Nos afecta?
 		usuarioRivalID = data.usuarioRivalID;
-		usuarioRivalCont = 60;
+		usuarioRivalCont = 60*3;
 	});
 
 	socket.on('isInGame', (data) => {
-		usuarioRivalPartidaID = data.usuarioRivalPartidaID;
-		usuarioRivalPartidaCont = 60;
+		if (data.usuarioRivalID == usuarioRivalID) {
+			usuarioRivalPartidaID = data.usuarioRivalPartidaID;
+			usuarioRivalPartidaCont = 60*3;
+		}
 	});
 
      // Bucle main
      setInterval(main, 16);
-	setInterval(isOnline, 400);
+	setInterval(isOnline, 1000);
 
      function main() {
 		if (loginScreen) {
